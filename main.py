@@ -1,64 +1,116 @@
+from flask import Flask, render_template, url_for, redirect, request, flash
 import requests
-import pandas as pd
-import sqlalchemy as db
-import tmdbsimple as tmdb
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from forms import LoginForm, SignupForm
+from models import db, User
 
-extracted_data = []
+app = Flask(__name__)
+app.config['Secret_Key'] = 'a6954a670f86a75ebd2521b5dac89289'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 
-tmdb.API_KEY = 'f506f78c7f61db273279624ae6df02d9'
+db.init_app(app)
 
-def get_movies(page):
-    search = tmdb.Movies()
-    response = search.popular(page=page)
-    return response['results']
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-def get_tv_shows(page):
-    search = tmdb.TV()
-    response = search.popular(page=page)
-    return response['results']
+TMBD_API_KEY = 'f506f78c7f61db273279624ae6df02d9'
 
-# stores movie and tv show data in a list of dictionaries
-def get_data(items, item_type):
-    global extracted_data
-    for item in items:
-        if item_type == 'movie':
-            title = item.get('title')
+trending_movies_url = f'https://api.themoviedb.org/3/trending/movie/day?api_key={TMBD_API_KEY}'
+trending_shows_url = f'https://api.themoviedb.org/3/trending/tv/day?api_key={TMBD_API_KEY}'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/profile')
+@login_required
+# profile page
+def profile():
+    return render_template('profile.html', name=current_user.username)
+
+@app.route('/signup', methods=['GET', 'POST'])
+# signup function
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        hashed_password = generate_password_hash(form.password.data, method='sha256')
+        new_user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=hashed_password
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user)
+        return redirect(url_for('login'))
+    return render_template('signup.html', form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+# login function
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.date).first()
+        if user and check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            return redirect(url_for('landing'))
         else:
-            title = item.get('name')
-        poster_path = f"https://image.tmdb.org/t/p/w500{item.get('poster_path')}"
-        rating = item.get('vote_average')
-        extracted_data.append({
-            'title': title,
-            'poster_path': poster_path,
-            'rating': rating,
-            'type': item_type
-        })
-    return extracted_data
+            flash('Login failed. Please check your email and password.', 'danger')
+    return render_template('login.html', form=form)
 
-def make_table(data):
-    # error handling
-    if not extracted_data:
-        print("Unable to create table.")
+
+@app.route('/logout')
+@login_required
+# logout function
+def logout():
+    logout_user()
+    return redirect(url_for('landing'))
+
+
+@app.route('/')
+# search / landing page to display top trending media, home page
+def landing():
+    movies_response = requests.get(trending_movies_url)
+    shows_response = requests.get(trending_shows_url)
+
+    if movies_response.status_code == 200 and shows_response.status_code == 200:
+        trending_movies = movies_response.json().get('results', [])
+        trending_shows = shows_response.json().get('results', [])
     else:
-        dataf = pd.DataFrame(extracted_data)
-        engine = db.create_engine('sqlite:///tmdb_data.db')
-        dataf.to_sql('all_media', con=engine, if_exists='replace', index=False)
-        with engine.connect() as connection:
-            query_result = (
-                connection.execute(db.text("SELECT * FROM all_media;"))
-                .fetchall()
-            )
-            print(pd.DataFrame(query_result))
+        trending_movies = []
+        trending_shows = []
 
-def main():
-    all_data = []
-    for page in range(1, 6):  # sample range - first 5 pages
-        movies = get_movies(page)
-        tv_shows = get_tv_shows(page)
-        all_data.extend(get_data(movies, 'movie'))
-        all_data.extend(get_data(tv_shows, 'tv_show'))
-    
-    make_table(all_data)
+    return render_template('search.html', trending_movies=trending_movies, trending_shows=trending_shows)
+
+@app.route('/search', methods=['GET'])
+# search page
+def search():
+    keyword = request.args.get('keyword')
+    if not keyword:
+        return "No keyword provided."
+    return redirect(url_for('search_results', keyword=keyword))
+
+@app.route('/search_results/<keyword>')
+# search results page
+def search_results(keyword):
+    response = requests.get(
+        f'https://api.themoviedb.org/3/search/multi?api_key={TMBD_API_KEY}&query={keyword}'
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        if 'results' in data:
+            results = data.get('results', [])
+        else:
+            results = []
+        return render_template('results.html', keyword=keyword, results=results)
+    else:
+        return f"Error: {response.status_code} - {response.text}"
 
 if __name__ == '__main__':
-    main()
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
