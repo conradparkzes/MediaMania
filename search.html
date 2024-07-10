@@ -1,0 +1,18 @@
+{% extends "template.html" %}
+
+{% block title %}Search - MovieMania{% endblock %}
+
+{% block content %}
+<h2>Search Results</h2>
+<div id="search-results" class="movies-grid"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const query = urlParams.get('query');
+        if (query) {
+            getMovies(searchURL + '&query=' + query);
+        }
+    });
+</script>
+{% endblock %}
