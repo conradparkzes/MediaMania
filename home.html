@@ -1,0 +1,13 @@
+{% extends "template.html" %}
+
+{% block title %}Home - MovieMania{% endblock %}
+
+{% block content %}
+<h2>Trending Movies</h2>
+<div id="movies" class="movies-grid"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        getMovies(API_URL);
+    });
+</script>
+{% endblock %}
