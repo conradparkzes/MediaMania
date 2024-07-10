@@ -2,12 +2,49 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Search</title>
+    <title>Home</title>
+    <style>
+        .trending-section {
+            margin: 20px 0;
+        }
+        .media-item {
+            margin: 10px 0;
+        }
+        .media-item img {
+            max-width: 100px;
+            display: block;
+        }
+        .media-item h3 {
+            margin: 5px 0;
+        }
+    </style>
   </head>
   <body>
     <form action="{{ url_for("search") }}" method="get">
       <input type="text" name="keyword" placeholder="Search media ...">
       <button type="submit">Search</button>
     </form>
+
+    <div class="trending-section">
+        <h2>Trending Movies</h2>
+        {% for movie in trending_movies %}
+        <div class="media-item">
+            <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}">
+            <h3>{{ movie.title }}</h3>
+            <p>Rating: {{ movie.vote_average }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="trending-section">
+        <h2>Trending TV Shows</h2>
+        {% for tv_show in trending_tv_shows %}
+        <div class="media-item">
+            <img src="https://image.tmdb.org/t/p/w500{{ tv_show.poster_path }}" alt="{{ tv_show.name }}">
+            <h3>{{ tv_show.name }}</h3>
+            <p>Rating: {{ tv_show.vote_average }}</p>
+        </div>
+        {% endfor %}
+    </div>
   </body>
 </html>

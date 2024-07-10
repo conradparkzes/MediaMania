@@ -4,10 +4,23 @@ import requests
 app = Flask(__name__)
 TMBD_API_KEY = 'f506f78c7f61db273279624ae6df02d9'
 
+trending_movies_url = f'https://api.themoviedb.org/3/trending/movie/day?api_key={TMBD_API_KEY}'
+trending_shows_url = f'https://api.themoviedb.org/3/trending/tv/day?api_key={TMBD_API_KEY}'
+
 @app.route('/')
 # search / landing page to display top trending media, home page
 def landing():
-    return render_template('search.html')
+    movies_response = requests.get(trending_movies_url)
+    shows_response = requests.get(trending_shows_url)
+
+    if movies_response.status_code == 200 and shows_response.status_code == 200:
+        trending_movies = movies_response.json().get('results', [])
+        trending_shows = shows_response.json().get('results', [])
+    else:
+        trending_movies = []
+        trending_shows = []
+
+    return render_template('search.html', trending_movies=trending_movies, trending_shows=trending_shows)
 
 @app.route('/search', methods=['GET'])
 def search():
