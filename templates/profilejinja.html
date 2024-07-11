@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - MovieMania</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Profile - MovieMania</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
     <div class="navbar">
-        <div>MovieMania</div>
+        <div>Moviemania</div>
         <div>
-            <a href="{{ url_for('home') }}">Home</a>
-            <a href="{{ url_for('register') }}">Register</a>
+            <a href="{{ url_for('landing') }}">Home</a>
+            <a href="{{ url_for('signup') }}">Register</a>
             <a href="{{ url_for('login') }}">Login</a>
             <form action="{{ url_for('search') }}" method="GET">
                 <input type="text" name="query" placeholder="Search...">
@@ -23,14 +22,15 @@
     </div>
 
     <div class="container">
-        <h1>MovieMania</h1>
+        <h1>Profile</h1>
+        <h2>Hello, {{ name }}</h2>
 
         <div class="card">
-            <h2 class="card-title">Trending Movies</h2>
+            <h2 class="card-title">Your Liked Movies</h2>
             <div class="card-content">
-                {% for movie in trending_movies %}
+                {% for movie in liked_movies %}
                 <div class="card-item">
-                    <img src="{{ movie['poster_path'] }}" alt="{{ movie['title'] }}">
+                    <img src="https://image.tmdb.org/t/p/w500{{ movie['poster_path'] }}" alt="{{ movie['title'] }}">
                     <p>{{ movie['title'] }}</p>
                 </div>
                 {% endfor %}
@@ -38,11 +38,11 @@
         </div>
 
         <div class="card">
-            <h2 class="card-title">Trending TV Shows</h2>
+            <h2 class="card-title">Your Liked TV Shows</h2>
             <div class="card-content">
-                {% for tv_show in trending_tv_shows %}
+                {% for tv_show in liked_tv_shows %}
                 <div class="card-item">
-                    <img src="{{ tv_show['poster_path'] }}" alt="{{ tv_show['name'] }}">
+                    <img src="https://image.tmdb.org/t/p/w500{{ tv_show['poster_path'] }}" alt="{{ tv_show['name'] }}">
                     <p>{{ tv_show['name'] }}</p>
                 </div>
                 {% endfor %}

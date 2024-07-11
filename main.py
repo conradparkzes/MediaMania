@@ -3,14 +3,16 @@ import requests
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf.csrf import CSRFProtect
 from forms import LoginForm, SignupForm
 from models import db, User
 
 app = Flask(__name__)
-app.config['Secret_Key'] = 'a6954a670f86a75ebd2521b5dac89289'
+app.config['SECRET_KEY'] = 'a6954a670f86a75ebd2521b5dac89289'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 
 db.init_app(app)
+csrf = CSRFProtect(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -27,12 +29,10 @@ def load_user(user_id):
 
 @app.route('/profile')
 @login_required
-# profile page
 def profile():
-    return render_template('profile.html', name=current_user.username)
+    return render_template('profilejinja.html', name=current_user.username)
 
 @app.route('/signup', methods=['GET', 'POST'])
-# signup function
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
@@ -45,33 +45,28 @@ def signup():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        return redirect(url_for('login'))
-    return render_template('signup.html', form=form)
+        return redirect(url_for('landing'))
+    return render_template('signupjinja.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
-# login function
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.date).first()
+        user = User.query.filter_by(email=form.email.data).first()
         if user and check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             return redirect(url_for('landing'))
         else:
             flash('Login failed. Please check your email and password.', 'danger')
-    return render_template('login.html', form=form)
-
+    return render_template('loginjinja.html', form=form)
 
 @app.route('/logout')
 @login_required
-# logout function
 def logout():
     logout_user()
     return redirect(url_for('landing'))
 
-
 @app.route('/')
-# search / landing page to display top trending media, home page
 def landing():
     movies_response = requests.get(trending_movies_url)
     shows_response = requests.get(trending_shows_url)
@@ -83,18 +78,16 @@ def landing():
         trending_movies = []
         trending_shows = []
 
-    return render_template('search.html', trending_movies=trending_movies, trending_shows=trending_shows)
+    return render_template('homejinja.html', trending_movies=trending_movies, trending_shows=trending_shows)
 
 @app.route('/search', methods=['GET'])
-# search page
 def search():
-    keyword = request.args.get('keyword')
+    keyword = request.args.get('query')
     if not keyword:
         return "No keyword provided."
     return redirect(url_for('search_results', keyword=keyword))
 
 @app.route('/search_results/<keyword>')
-# search results page
 def search_results(keyword):
     response = requests.get(
         f'https://api.themoviedb.org/3/search/multi?api_key={TMBD_API_KEY}&query={keyword}'
@@ -102,11 +95,8 @@ def search_results(keyword):
 
     if response.status_code == 200:
         data = response.json()
-        if 'results' in data:
-            results = data.get('results', [])
-        else:
-            results = []
-        return render_template('results.html', keyword=keyword, results=results)
+        results = data.get('results', [])
+        return render_template('searchjinja.html', keyword=keyword, search_results=results)
     else:
         return f"Error: {response.status_code} - {response.text}"
 
