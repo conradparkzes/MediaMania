@@ -16,3 +16,11 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
+class Favorite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    media_id = db.Column(db.Integer, nullable=False)
+    media_type = db.Column(db.String(10), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    poster_path = db.Column(db.String(200), nullable=True)
+    vote_average = db.Column(db.Float, nullable=True)

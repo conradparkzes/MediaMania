@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Home - MediaMania</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </head>
+    <body>
+        {% include 'navbar.html' %}
+        <div class="container">
+            <div class="search-form">
+                <form action="{{ url_for("search") }}" method="GET" class="search-form">
+                    <input type="text"
+                           name="query"
+                           placeholder="Search for movies or TV shows...">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flashes">
+                        {% for category, message in messages %}
+                            <div class="{{ category }}">
+                                {{ message }} <span class="close">&times;</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            <div class="trending-section">
+                <h2>Trending Movies</h2>
+                <div class="card-content">
+                    {% for movie in trending_movies %}
+                        <div class="card-item">
+                            <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                                 alt="{{ movie.title }}">
+                            <p class="title">{{ movie.title | truncate(20) }}</p>
+                            <p class="rating">Rating: {{ "%.1f"|format(movie.vote_average) if movie.vote_average else "No Rating" }}/10</p>
+                            <button class="favorite-btn"
+                                    data-id="{{ movie.id }}"
+                                    data-type="movie"
+                                    data-title="{{ movie.title }}"
+                                    data-poster="{{ movie.poster_path }}"
+                                    data-vote-average="{{ movie.vote_average }}">Favorite</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="trending-section">
+                <h2>Trending TV Shows</h2>
+                <div class="card-content">
+                    {% for show in trending_shows %}
+                        <div class="card-item">
+                            <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}"
+                                 alt="{{ show.name }}">
+                            <p class="title">{{ show.name | truncate(20) }}</p>
+                            <p class="rating">Rating: {{ "%.1f"|format(show.vote_average) if show.vote_average else "No Rating" }}/10</p>
+                            <button class="favorite-btn"
+                                    data-id="{{ show.id }}"
+                                    data-type="tv"
+                                    data-title="{{ show.name }}"
+                                    data-poster="{{ show.poster_path }}"
+                                    data-vote-average="{{ show.vote_average }}">Favorite</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <script>
+    $(document).ready(function() {
+        var liked_media_ids = {{ liked_media_ids|tojson|safe }};
+        console.log("Liked media IDs:", liked_media_ids);
+
+        $('.favorite-btn').each(function() {
+            var button = $(this);
+            var media_id = button.data('id');
+            if (liked_media_ids.includes(media_id)) {
+                button.text('Unfavorite').css('background-color', '#ff0000');
+            } else {
+                button.text('Favorite').css('background-color', '#28a745');
+            }
+        });
+
+        $('.favorite-btn').click(function() {
+            var button = $(this);
+            var media_id = button.data('id');
+            var media_type = button.data('type');
+            var title = button.data('title');
+            var poster_path = button.data('poster');
+            var vote_average = button.data('vote-average');
+            var csrf_token = "{{ csrf_token() }}";
+
+            console.log(`Favorite button clicked for media_id: ${media_id}, media_type: ${media_type}, title: ${title}`);
+
+            $.ajax({
+                url: "{{ url_for('favorite') }}",
+                method: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': csrf_token
+                },
+                data: JSON.stringify({
+                    media_id: media_id,
+                    media_type: media_type,
+                    title: title,
+                    poster_path: poster_path,
+                    vote_average: vote_average
+                }),
+                success: function(response) {
+                    if (response.result === 'added') {
+                        button.text('Unfavorite').css('background-color', '#ff0000');
+                        showFlashMessage('Added to favorites', 'success');
+                    } else {
+                        button.text('Favorite').css('background-color', '#28a745');
+                        showFlashMessage('Removed from favorites', 'success');
+                    }
+                },
+                error: function(error) {
+                    console.error('Error in favorite request:', error);
+                }
+            });
+        });
+
+        function showFlashMessage(message, category) {
+            var flashMessage = $('<div>').addClass(category).text(message);
+            flashMessage.append('<span class="close">&times;</span>');
+            $('.flashes').append(flashMessage);
+            flashMessage.find('.close').click(function() {
+                $(this).parent().remove();
+            });
+            setTimeout(function() {
+                flashMessage.fadeOut('slow', function() {
+                    $(this).remove();
+                });
+            }, 2000);
+        }
+    });
+        </script>
+    </body>
+</html>

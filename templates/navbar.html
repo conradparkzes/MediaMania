@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <title>MediaMania</title>
+    </head>
+    <body>
+        <div class="navbar">
+            <div class="logo">
+                <a href="{{ url_for("landing") }}">MediaMania</a>
+            </div>
+            <div class="nav-links">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for("profile") }}">Profile</a>
+                    <a href="{{ url_for("logout") }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for("signup") }}">Sign Up</a>
+                    <a href="{{ url_for("login") }}">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </body>
+</html>
