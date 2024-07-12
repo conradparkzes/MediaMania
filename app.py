@@ -58,7 +58,6 @@ def favorite():
             if favorite:
                 db.session.delete(favorite)
                 db.session.commit()
-                flash(f'Removed {title} from favorites.', 'success')
                 return jsonify({'result': 'removed'})
             else:
                 new_favorite = Favorite(
@@ -71,7 +70,6 @@ def favorite():
                 )
                 db.session.add(new_favorite)
                 db.session.commit()
-                flash(f'Added {title} to favorites.', 'success')
                 return jsonify({'result': 'added'})
         else:
             return jsonify({'error': 'Request must be JSON'}), 400
@@ -122,7 +120,6 @@ def logout():
 def search():
     keyword = request.args.get('query')
     if not keyword:
-        flash('No keyword provided', 'warning')
         return redirect(url_for('landing'))
     return redirect(url_for('search_results', keyword=keyword))
 

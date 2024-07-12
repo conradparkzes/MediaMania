@@ -10,6 +10,7 @@
     <body>
         {% include 'navbar.html' %}
         <div class="container">
+            {% if not current_user.is_authenticated %}<h1 class="welcome">Welcome to MediaMania!</h1>{% endif %}
             <div class="search-form">
                 <form action="{{ url_for("search") }}" method="GET" class="search-form">
                     <input type="text"
@@ -18,17 +19,6 @@
                     <button type="submit">Search</button>
                 </form>
             </div>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flashes">
-                        {% for category, message in messages %}
-                            <div class="{{ category }}">
-                                {{ message }} <span class="close">&times;</span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
             <div class="trending-section">
                 <h2>Trending Movies</h2>
                 <div class="card-content">
@@ -111,10 +101,8 @@
                 success: function(response) {
                     if (response.result === 'added') {
                         button.text('Unfavorite').css('background-color', '#ff0000');
-                        showFlashMessage('Added to favorites', 'success');
                     } else {
                         button.text('Favorite').css('background-color', '#28a745');
-                        showFlashMessage('Removed from favorites', 'success');
                     }
                 },
                 error: function(error) {
@@ -123,19 +111,6 @@
             });
         });
 
-        function showFlashMessage(message, category) {
-            var flashMessage = $('<div>').addClass(category).text(message);
-            flashMessage.append('<span class="close">&times;</span>');
-            $('.flashes').append(flashMessage);
-            flashMessage.find('.close').click(function() {
-                $(this).parent().remove();
-            });
-            setTimeout(function() {
-                flashMessage.fadeOut('slow', function() {
-                    $(this).remove();
-                });
-            }, 2000);
-        }
     });
         </script>
     </body>

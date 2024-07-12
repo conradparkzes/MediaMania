@@ -9,29 +9,16 @@
     </head>
     <body>
         {% include 'navbar.html' %}
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flashes">
-                    {% for category, message in messages %}
-                        <div class="{{ category }}">
-                            {{ message }} <span class="close">&times;</span>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
         <div class="container">
             <h1>Profile</h1>
             <h2>Hello, {{ name }}</h2>
-            {% if not liked_movies and not liked_tv_shows %}
-                <p>No Liked Media</p>
-            {% else %}
+            <div id="liked-media">
                 {% if liked_movies %}
-                    <div class="trending-section">
+                    <div class="trending-section" id="liked-movies-section">
                         <h2>Your Liked Movies</h2>
                         <div class="card-content">
                             {% for movie in liked_movies %}
-                                <div class="card-item">
+                                <div class="card-item" data-id="{{ movie.media_id }}">
                                     <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
                                          alt="{{ movie.title }}">
                                     <p class="title">{{ movie.title | truncate(20) }}</p>
@@ -48,11 +35,11 @@
                     </div>
                 {% endif %}
                 {% if liked_tv_shows %}
-                    <div class="trending-section">
+                    <div class="trending-section" id="liked-tv-section">
                         <h2>Your Liked TV Shows</h2>
                         <div class="card-content">
                             {% for tv_show in liked_tv_shows %}
-                                <div class="card-item">
+                                <div class="card-item" data-id="{{ tv_show.media_id }}">
                                     <img src="https://image.tmdb.org/t/p/w500{{ tv_show.poster_path }}"
                                          alt="{{ tv_show.title }}">
                                     <p class="title">{{ tv_show.title | truncate(20) }}</p>
@@ -68,22 +55,22 @@
                         </div>
                     </div>
                 {% endif %}
-            {% endif %}
+            </div>
         </div>
         <script>
     $(document).ready(function() {
-        var liked_media_ids = {{ liked_media_ids|tojson|safe }};
-        console.log("Liked media IDs:", liked_media_ids);
-
-        $('.favorite-btn').each(function() {
-            var button = $(this);
-            var media_id = button.data('id');
-            if (liked_media_ids.includes(media_id)) {
-                button.text('Unfavorite').css('background-color', '#ff0000');
+        function checkIfNoLikedMedia() {
+            if ($('#liked-media .card-item').length === 0) {
+                $('#liked-media').html('<h2 style="text-align: center";>No Liked Media...</h2>');
             } else {
-                button.text('Favorite').css('background-color', '#28a745');
+                if ($('#liked-movies-section .card-item').length === 0) {
+                    $('#liked-movies-section').remove();
+                }
+                if ($('#liked-tv-section .card-item').length === 0) {
+                    $('#liked-tv-section').remove();
+                }
             }
-        });
+        }
 
         $('.favorite-btn').click(function() {
             var button = $(this);
@@ -93,8 +80,6 @@
             var poster_path = button.data('poster');
             var vote_average = button.data('vote-average');
             var csrf_token = "{{ csrf_token() }}";
-
-            console.log(`Favorite button clicked for media_id: ${media_id}, media_type: ${media_type}, title: ${title}`);
 
             $.ajax({
                 url: "{{ url_for('favorite') }}",
@@ -111,12 +96,9 @@
                     vote_average: vote_average
                 }),
                 success: function(response) {
-                    if (response.result === 'added') {
-                        button.text('Unfavorite').css('background-color', '#ff0000');
-                        showFlashMessage('Added to favorites', 'success');
-                    } else {
+                    if (response.result === 'removed') {
                         button.closest('.card-item').remove();
-                        showFlashMessage('Removed from favorites', 'success');
+                        checkIfNoLikedMedia();
                     }
                 },
                 error: function(error) {
@@ -125,19 +107,7 @@
             });
         });
 
-        function showFlashMessage(message, category) {
-            var flashMessage = $('<div>').addClass(category).text(message);
-            flashMessage.append('<span class="close">&times;</span>');
-            $('.flashes').append(flashMessage);
-            flashMessage.find('.close').click(function() {
-                $(this).parent().remove();
-            });
-            setTimeout(function() {
-                flashMessage.fadeOut('slow', function() {
-                    $(this).remove();
-                });
-            }, 2000);
-        }
+        checkIfNoLikedMedia();
     });
         </script>
     </body>
