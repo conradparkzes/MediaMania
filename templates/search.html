@@ -22,17 +22,18 @@
                             <p class="rating">Rating: {{ "%.1f"|format(result.vote_average) if result.vote_average else "No Rating" }}/10</p>
                             {% if current_user.is_authenticated %}
                                 <button class="favorite-btn"
-                                        data-id="{{ movie.id }}"
-                                        data-type="movie"
-                                        data-title="{{ movie.title }}"
-                                        data-poster="{{ movie.poster_path }}"
-                                        data-vote-average="{{ movie.vote_average }}">Favorite</button>
+                                        data-id="{{ result.id }}"
+                                        data-type="{{ result.media_type }}"
+                                        data-title="{{ result.title or result.name }}"
+                                        data-poster="{{ result.poster_path or result.backdrop_path }}"
+                                        data-vote-average="{{ result.vote_average }}">Favorite</button>
                             {% endif %}
-                        {% endfor %}
-                    </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
-            <script>
+        </div>
+        <script>
     $(document).ready(function() {
         var liked_media_ids = {{ liked_media_ids|tojson|safe }};
         console.log("Liked media IDs:", liked_media_ids);
@@ -85,6 +86,6 @@
             });
         });
     });
-            </script>
-        </body>
-    </html>
+        </script>
+    </body>
+</html>

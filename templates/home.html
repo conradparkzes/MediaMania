@@ -51,11 +51,11 @@
                             <p class="rating">Rating: {{ "%.1f"|format(show.vote_average) if show.vote_average else "No Rating" }}/10</p>
                             {% if current_user.is_authenticated %}
                                 <button class="favorite-btn"
-                                        data-id="{{ movie.id }}"
-                                        data-type="movie"
-                                        data-title="{{ movie.title }}"
-                                        data-poster="{{ movie.poster_path }}"
-                                        data-vote-average="{{ movie.vote_average }}">Favorite</button>
+                                        data-id="{{ show.id }}"
+                                        data-type="tv"
+                                        data-title="{{ show.name }}"
+                                        data-poster="{{ show.poster_path }}"
+                                        data-vote-average="{{ show.vote_average }}">Favorite</button>
                             {% endif %}
                         </div>
                     {% endfor %}

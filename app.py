@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, url_for, redirect, request, flash, jsonify
 import requests
 from flask_sqlalchemy import SQLAlchemy
@@ -8,10 +9,9 @@ from forms import LoginForm, SignupForm
 from models import db, User, Favorite
 from flask_migrate import Migrate
 
-
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
 app.config['SECRET_KEY'] = 'a6954a670f86a75ebd2521b5dac89289'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(app.instance_path, "users.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -26,7 +26,6 @@ trending_movies_url = f'https://api.themoviedb.org/3/trending/movie/day?api_key=
 trending_shows_url = f'https://api.themoviedb.org/3/trending/tv/day?api_key={TMBD_API_KEY}'
 migrate = Migrate(app, db)
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
@@ -38,6 +37,7 @@ def profile():
     liked_tv_shows = Favorite.query.filter_by(user_id=current_user.id, media_type='tv').all()
     liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
     return render_template('profile.html', name=current_user.username, liked_movies=liked_movies, liked_tv_shows=liked_tv_shows, liked_media_ids=liked_media_ids)
+
 @app.route('/favorite', methods=['POST'])
 @login_required
 def favorite():
@@ -68,8 +68,6 @@ def favorite():
         db.session.add(new_favorite)
         db.session.commit()
         return jsonify({'result': 'added'})
-
-
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -147,6 +145,7 @@ def search_results(keyword):
         return f"Error: {response.status_code} - {response.text}"
 
 if __name__ == '__main__':
+    os.makedirs(app.instance_path, exist_ok=True)
     with app.app_context():
         db.create_all()
     app.run(debug=True)
