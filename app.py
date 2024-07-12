@@ -38,44 +38,37 @@ def profile():
     liked_tv_shows = Favorite.query.filter_by(user_id=current_user.id, media_type='tv').all()
     liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
     return render_template('profile.html', name=current_user.username, liked_movies=liked_movies, liked_tv_shows=liked_tv_shows, liked_media_ids=liked_media_ids)
-
 @app.route('/favorite', methods=['POST'])
 @login_required
 def favorite():
-    try:
-        if request.is_json:
-            data = request.get_json()
-            if not data:
-                return jsonify({'error': 'Invalid data'}), 400
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid data'}), 400
 
-            media_id = data.get('media_id')
-            media_type = data.get('media_type')
-            title = data.get('title')
-            poster_path = data.get('poster_path')
-            vote_average = data.get('vote_average')
+    media_id = data.get('media_id')
+    media_type = data.get('media_type')
+    title = data.get('title')
+    poster_path = data.get('poster_path')
+    vote_average = data.get('vote_average')
 
-            favorite = Favorite.query.filter_by(user_id=current_user.id, media_id=media_id, media_type=media_type).first()
-            if favorite:
-                db.session.delete(favorite)
-                db.session.commit()
-                return jsonify({'result': 'removed'})
-            else:
-                new_favorite = Favorite(
-                    user_id=current_user.id,
-                    media_id=media_id,
-                    media_type=media_type,
-                    title=title,
-                    poster_path=poster_path,
-                    vote_average=vote_average
-                )
-                db.session.add(new_favorite)
-                db.session.commit()
-                return jsonify({'result': 'added'})
-        else:
-            return jsonify({'error': 'Request must be JSON'}), 400
-    except Exception as e:
-        flash('An error occurred while processing your request.', 'error')
-        return jsonify({'error': 'Internal server error'}), 500
+    favorite = Favorite.query.filter_by(user_id=current_user.id, media_id=media_id, media_type=media_type).first()
+    if favorite:
+        db.session.delete(favorite)
+        db.session.commit()
+        return jsonify({'result': 'removed'})
+    else:
+        new_favorite = Favorite(
+            user_id=current_user.id,
+            media_id=media_id,
+            media_type=media_type,
+            title=title,
+            poster_path=poster_path,
+            vote_average=vote_average
+        )
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify({'result': 'added'})
+
 
 
 @app.route('/signup', methods=['GET', 'POST'])

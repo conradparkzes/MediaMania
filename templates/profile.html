@@ -58,57 +58,57 @@
             </div>
         </div>
         <script>
-    $(document).ready(function() {
-        function checkIfNoLikedMedia() {
-            if ($('#liked-media .card-item').length === 0) {
-                $('#liked-media').html('<h2 style="text-align: center";>No Liked Media...</h2>');
-            } else {
-                if ($('#liked-movies-section .card-item').length === 0) {
-                    $('#liked-movies-section').remove();
-                }
-                if ($('#liked-tv-section .card-item').length === 0) {
-                    $('#liked-tv-section').remove();
-                }
-            }
-        }
-
-        $('.favorite-btn').click(function() {
-            var button = $(this);
-            var media_id = button.data('id');
-            var media_type = button.data('type');
-            var title = button.data('title');
-            var poster_path = button.data('poster');
-            var vote_average = button.data('vote-average');
-            var csrf_token = "{{ csrf_token() }}";
-
-            $.ajax({
-                url: "{{ url_for('favorite') }}",
-                method: 'POST',
-                contentType: 'application/json',
-                headers: {
-                    'X-CSRFToken': csrf_token
-                },
-                data: JSON.stringify({
-                    media_id: media_id,
-                    media_type: media_type,
-                    title: title,
-                    poster_path: poster_path,
-                    vote_average: vote_average
-                }),
-                success: function(response) {
-                    if (response.result === 'removed') {
-                        button.closest('.card-item').remove();
-                        checkIfNoLikedMedia();
+            $(document).ready(function() {
+                function checkIfNoLikedMedia() {
+                    if ($('#liked-media .card-item').length === 0) {
+                        $('#liked-media').html('<h2 style="text-align: center">No Liked Media...</h2>');
+                    } else {
+                        if ($('#liked-movies-section .card-item').length === 0) {
+                            $('#liked-movies-section').remove();
+                        }
+                        if ($('#liked-tv-section .card-item').length === 0) {
+                            $('#liked-tv-section').remove();
+                        }
                     }
-                },
-                error: function(error) {
-                    console.error('Error in favorite request:', error);
                 }
+        
+                $('.favorite-btn').click(function() {
+                    var button = $(this);
+                    var media_id = button.data('id');
+                    var media_type = button.data('type');
+                    var title = button.data('title');
+                    var poster_path = button.data('poster');
+                    var vote_average = button.data('vote-average');
+                    var csrf_token = "{{ csrf_token() }}";
+        
+                    $.ajax({
+                        url: "{{ url_for('favorite') }}",
+                        method: 'POST',
+                        contentType: 'application/json',
+                        headers: {
+                            'X-CSRFToken': csrf_token
+                        },
+                        data: JSON.stringify({
+                            media_id: media_id,
+                            media_type: media_type,
+                            title: title,
+                            poster_path: poster_path,
+                            vote_average: vote_average
+                        }),
+                        success: function(response) {
+                            if (response.result === 'removed') {
+                                button.closest('.card-item').remove();
+                                checkIfNoLikedMedia();
+                            }
+                        },
+                        error: function(error) {
+                            console.error('Error in favorite request:', error);
+                        }
+                    });
+                });
+        
+                checkIfNoLikedMedia();
             });
-        });
-
-        checkIfNoLikedMedia();
-    });
         </script>
     </body>
 </html>
