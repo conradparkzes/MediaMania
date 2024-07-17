@@ -128,6 +128,20 @@ def landing():
 
     return render_template('home.html', trending_movies=trending_movies, trending_shows=trending_shows, liked_media_ids=liked_media_ids)
 
+@app.route('/media/<media_type>/<int:media_id>')
+def media_detail(media_type, media_id):
+    response = requests.get(f'https://api.themoviedb.org/3/{media_type}/{media_id}?api_key={TMBD_API_KEY}')
+
+    if response.status_code == 200:
+        media_data = response.json()
+        liked_media_ids = []
+        if current_user.is_authenticated:
+            liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
+        return render_template('media.html', media=media_data, media_type=media_type, liked_media_ids=liked_media_ids)
+    else:
+        return f"Error: {response.status_code} - {response.text}"
+
+
 @app.route('/search_results/<keyword>')
 def search_results(keyword):
     response = requests.get(

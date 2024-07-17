@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ media.title or media.name }} - MediaMania</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <div class="media-detail">
+            <img src="https://image.tmdb.org/t/p/w500{{ media.poster_path }}" alt="{{ media.title or media.name }}">
+            <h1>{{ media.title or media.name }}</h1>
+            <p class="rating">Rating: {{ "%.1f"|format(media.vote_average) if media.vote_average else "No Rating" }}/10</p>
+            <p class="overview">{{ media.overview }}</p>
+            {% if current_user.is_authenticated %}
+                <button class="favorite-btn"
+                        data-id="{{ media.id }}"
+                        data-type="{{ media_type }}"
+                        data-title="{{ media.title or media.name }}"
+                        data-poster="{{ media.poster_path }}"
+                        data-vote-average="{{ media.vote_average }}">Favorite</button>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            var liked_media_ids = {{ liked_media_ids|tojson|safe }};
+            console.log("Liked media IDs:", liked_media_ids);
+
+            var button = $('.favorite-btn');
+            var media_id = button.data('id');
+            if (liked_media_ids.includes(media_id)) {
+                button.text('Unfavorite').css('background-color', '#ff0000');
+            } else {
+                button.text('Favorite').css('background-color', '#28a745');
+            }
+
+            button.click(function() {
+                var media_id = button.data('id');
+                var media_type = button.data('type');
+                var title = button.data('title');
+                var poster_path = button.data('poster');
+                var vote_average = button.data('vote-average');
+                var csrf_token = "{{ csrf_token() }}";
+
+                $.ajax({
+                    url: "{{ url_for('favorite') }}",
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({
+                        media_id: media_id,
+                        media_type: media_type,
+                        title: title,
+                        poster_path: poster_path,
+                        vote_average: vote_average
+                    }),
+                    success: function(response) {
+                        if (response.result === 'added') {
+                            button.text('Unfavorite').css('background-color', '#ff0000');
+                        } else {
+                            button.text('Favorite').css('background-color', '#28a745');
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error in favorite request:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
