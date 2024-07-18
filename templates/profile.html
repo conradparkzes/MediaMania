@@ -30,7 +30,8 @@
                                             data-type="movie"
                                             data-title="{{ movie.title }}"
                                             data-poster="{{ movie.poster_path }}"
-                                            data-vote-average="{{ movie.vote_average }}">Unfavorite</button>
+                                            data-vote-average="{{ movie.vote_average }}"
+                                            style="background-color: #ff0000;">Unfavorite</button>
                                 </div>
                             {% endfor %}
                         </div>
@@ -55,7 +56,8 @@
                                             data-type="tv"
                                             data-title="{{ tv_show.title }}"
                                             data-poster="{{ tv_show.poster_path }}"
-                                            data-vote-average="{{ tv_show.vote_average }}">Unfavorite</button>
+                                            data-vote-average="{{ tv_show.vote_average }}"
+                                            style="background-color: #ff0000;">Unfavorite</button>
                                 </div>
                             {% endfor %}
                         </div>
@@ -77,6 +79,9 @@
                         }
                     }
                 }
+
+                // unfavorite button initially red
+                $('.favorite-btn').css('background-color', '#ff0000');
         
                 $('.favorite-btn').click(function() {
                     var button = $(this);
