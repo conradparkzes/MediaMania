@@ -6,7 +6,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from forms import LoginForm, SignupForm
-from models import db, User, Favorite
+from models import db, User, Favorite, MediaRating
 from flask_migrate import Migrate
 
 app = Flask(__name__, instance_relative_config=True)
@@ -68,6 +68,27 @@ def favorite():
         db.session.add(new_favorite)
         db.session.commit()
         return jsonify({'result': 'added'})
+
+@app.route('/rate', methods=['POST'])
+@login_required
+def rate():
+    data = request.json
+    media_id = data['media_id']
+    media_type = data['media_type']
+    rating = data['rating']
+
+    # Check if the user has already rated this media
+    existing_rating = MediaRating.query.filter_by(user_id=current_user.id, media_id=media_id, media_type=media_type).first()
+
+    if existing_rating:
+        existing_rating.rating = rating
+    else:
+        new_rating = MediaRating(user_id=current_user.id, media_id=media_id, media_type=media_type, rating=rating)
+        db.session.add(new_rating)
+
+    db.session.commit()
+
+    return jsonify({'result': 'success'})
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -135,9 +156,36 @@ def media_detail(media_type, media_id):
     if response.status_code == 200:
         media_data = response.json()
         liked_media_ids = []
+        year = media_data.get('release_date', '')[:4] if media_type == 'movie' else media_data.get('first_air_date', '')[:4]
+        #maturity_rating = media_data.get('adult', 'N/A') if media_type == 'movie' else media.get('content_ratings', {}).get('results', [{}])[0].get('rating', 'N/A')
+        imdb_rating = media_data.get('vote_average', 'N/A')
+        language = media_data.get('original_language', 'N/A')
+        country = media_data.get('production_countries', [{}])[0].get('name', 'N/A')
+
+        maturity_rating = 'N/A'
+        if media_type == 'movie':
+            maturity_response = requests.get(f'https://api.themoviedb.org/3/movie/{media_id}/release_dates?api_key={TMBD_API_KEY}')
+            if maturity_response.status_code == 200:
+                release_dates = maturity_response.json().get('results', [])
+                for entry in release_dates:
+                    if entry['iso_3166_1'] == 'US':
+                        for release in entry['release_dates']:
+                            if 'certification' in release and release['certification']:
+                                maturity_rating = release['certification']
+                                break
+                        break
+        elif media_type == 'tv':
+            maturity_response = requests.get(f'https://api.themoviedb.org/3/tv/{media_id}/content_ratings?api_key={TMBD_API_KEY}')
+            if maturity_response.status_code == 200:
+                content_ratings = maturity_response.json().get('results', [])
+                for entry in content_ratings:
+                    if entry['iso_3166_1'] == 'US':
+                        maturity_rating = entry['rating']
+                        break
+
         if current_user.is_authenticated:
             liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
-        return render_template('media.html', media=media_data, media_type=media_type, liked_media_ids=liked_media_ids)
+        return render_template('media.html', media=media_data, media_type=media_type, liked_media_ids=liked_media_ids, year=year, maturity_rating=maturity_rating, imdb_rating=imdb_rating, language=language, country=country)
     else:
         return f"Error: {response.status_code} - {response.text}"
 

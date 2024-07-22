@@ -225,3 +225,22 @@ body {
   cursor: pointer;
   font-size: 16px;
 }
+
+.star-rating {
+  direction: ltr;
+  display: inline-block;
+  padding: 20px;
+}
+
+.star-rating .star {
+  color: #bbb;
+  font-size: 24px;
+  padding: 0 5px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.star-rating .star.gold,
+.star-rating .star.hovered {
+  color: #f2b600;
+}

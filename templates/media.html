@@ -15,6 +15,11 @@
             <h1>{{ media.title or media.name }}</h1>
             <p class="rating">Rating: {{ "%.1f"|format(media.vote_average) if media.vote_average else "No Rating" }}/10</p>
             <p class="overview">{{ media.overview }}</p>
+            <p><strong>Year:</strong> {{ year }}</p>
+            <p><strong>Maturity Rating:</strong> {{ maturity_rating }}</p>
+            <p><strong>IMDB Rating:</strong> {{ imdb_rating }}</p>
+            <p><strong>Language:</strong> {{ language }}</p>
+            <p><strong>Country:</strong> {{ country }}</p>
             {% if current_user.is_authenticated %}
                 <button class="favorite-btn"
                         data-id="{{ media.id }}"
@@ -22,6 +27,11 @@
                         data-title="{{ media.title or media.name }}"
                         data-poster="{{ media.poster_path }}"
                         data-vote-average="{{ media.vote_average }}">Favorite</button>
+                <div class="star-rating" data-id="{{ media.id }}" data-type="{{ media_type }}">
+                    {% for i in range(1, 6) %}
+                        <span class="star {% if favorite and favorite.rating and favorite.rating >= i %}gold{% endif %}" data-value="{{ i }}">&#9733;</span>
+                    {% endfor %}
+                </div>
             {% endif %}
         </div>
     </div>
@@ -69,6 +79,53 @@
                     },
                     error: function(error) {
                         console.error('Error in favorite request:', error);
+                    }
+                });
+            });
+
+            $('.star').hover(
+                function() {
+                    $(this).prevAll().addBack().addClass('hovered');
+                    $(this).nextAll().removeClass('hovered');
+                }, function() {
+                    $(this).siblings().addBack().removeClass('hovered');
+                }
+            );
+
+            $('.star').click(function() {
+                var rating = $(this).data('value');
+                var media_id = $(this).parent().data('id');
+                var media_type = $(this).parent().data('type');
+                var csrf_token = "{{ csrf_token() }}";
+
+                if ($(this).hasClass('gold')) {
+                    rating = 0; // Reset rating to 0 if the current rating star is clicked again
+                }
+
+                $.ajax({
+                    url: '{{ url_for("rate") }}',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({
+                        media_id: media_id,
+                        media_type: media_type,
+                        rating: rating
+                    }),
+                    success: function(response) {
+                        $('.star').removeClass('gold');
+                        if (rating > 0) {
+                            $('.star').each(function() {
+                                if ($(this).data('value') <= rating) {
+                                    $(this).addClass('gold');
+                                }
+                            });
+                        }
+                    },
+                    error: function(response) {
+                        console.error('Error in rating request:', response);
                     }
                 });
             });
