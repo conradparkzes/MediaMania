@@ -77,7 +77,7 @@ def rate():
     media_type = data['media_type']
     rating = data['rating']
 
-    # Check if the user has already rated this media
+    # check if user has already rated this media
     existing_rating = MediaRating.query.filter_by(user_id=current_user.id, media_id=media_id, media_type=media_type).first()
 
     if existing_rating:
@@ -157,7 +157,6 @@ def media_detail(media_type, media_id):
         media_data = response.json()
         liked_media_ids = []
         year = media_data.get('release_date', '')[:4] if media_type == 'movie' else media_data.get('first_air_date', '')[:4]
-        #maturity_rating = media_data.get('adult', 'N/A') if media_type == 'movie' else media.get('content_ratings', {}).get('results', [{}])[0].get('rating', 'N/A')
         imdb_rating = media_data.get('vote_average', 'N/A')
         language = media_data.get('original_language', 'N/A')
         country = media_data.get('production_countries', [{}])[0].get('name', 'N/A')
@@ -183,31 +182,33 @@ def media_detail(media_type, media_id):
                         maturity_rating = entry['rating']
                         break
 
+        user_rating = None
         if current_user.is_authenticated:
             liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
-        return render_template('media.html', media=media_data, media_type=media_type, liked_media_ids=liked_media_ids, year=year, maturity_rating=maturity_rating, imdb_rating=imdb_rating, language=language, country=country)
-    else:
-        return f"Error: {response.status_code} - {response.text}"
+            user_rating_record = MediaRating.query.filter_by(user_id=current_user.id, media_id=media_id, media_type=media_type).first()
+            user_rating = user_rating_record.rating if user_rating_record else None
+
+        return render_template('media.html', media=media_data, media_type=media_type, liked_media_ids=liked_media_ids, year=year, maturity_rating=maturity_rating, imdb_rating=imdb_rating, language=language, country=country, user_rating=user_rating)
+
+    return redirect(url_for('landing'))
 
 
 @app.route('/search_results/<keyword>')
 def search_results(keyword):
-    response = requests.get(
-        f'https://api.themoviedb.org/3/search/multi?api_key={TMBD_API_KEY}&query={keyword}'
-    )
-
+    search_url = f'https://api.themoviedb.org/3/search/multi?api_key={TMBD_API_KEY}&query={keyword}'
+    response = requests.get(search_url)
     if response.status_code == 200:
-        data = response.json()
-        results = data.get('results', [])
-        liked_media_ids = []
-        if current_user.is_authenticated:
-            liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
-        return render_template('search.html', keyword=keyword, search_results=results, liked_media_ids=liked_media_ids)
+        search_results = response.json().get('results', [])
     else:
-        return f"Error: {response.status_code} - {response.text}"
+        search_results = []
+
+    liked_media_ids = []
+    if current_user.is_authenticated:
+        liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
+
+    return render_template('search.html', search_results=search_results, keyword=keyword, liked_media_ids=liked_media_ids)
 
 if __name__ == '__main__':
-    os.makedirs(app.instance_path, exist_ok=True)
     with app.app_context():
         db.create_all()
     app.run(debug=True)

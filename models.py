@@ -25,9 +25,8 @@ class Favorite(db.Model):
     title = db.Column(db.String(100), nullable=False)
     poster_path = db.Column(db.String(200), nullable=True)
     vote_average = db.Column(db.Float, nullable=True)
-    rating = db.Column(db.Integer, nullable=True)  # New field for storing user rating
+    rating = db.Column(db.Integer, nullable=True)
 
-    #user = db.relationship('User', backref=db.backref('favorites', lazy=True))
     def __repr__(self):
         return f'<Favorite {self.title}>'
 
@@ -35,7 +34,7 @@ class MediaRating(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     media_id = db.Column(db.Integer, nullable=False)
-    media_type = db.Column(db.String(10), nullable=False)  # 'movie' or 'tv'
+    media_type = db.Column(db.String(10), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
 
     user = db.relationship('User', backref=db.backref('ratings', lazy=True))
