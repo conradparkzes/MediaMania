@@ -13,13 +13,14 @@
             <h1>Profile</h1>
             <h2>Hello, {{ name }}</h2>
 
-            <!--sort feature! currently does not work. See sortby in the script below-->
+            <!--sort feature!-->
             <div class="sort-options">
                 <label for="sort">Sort by:</label>
                 <select id="sort" onchange="sortFavorites(this.value)">
-                    <option value="default">Default</option>
+                    <option value="default">Relevance</option>
                     <option value="alpha">Alphabetical</option>
                     <option value="release">Release Date</option>
+                    <option value="rating">Rating</option>
                 </select>
             </div>
 
@@ -27,9 +28,9 @@
                 {% if liked_movies %}
                     <div class="trending-section" id="liked-movies-section">
                         <h2>Your Liked Movies</h2>
-                        <div class="card-content">
+                        <div class="card-content" id="liked-movies">
                             {% for movie in liked_movies %}
-                                <div class="card-item" data-id="{{ movie.media_id }}">
+                                <div class="card-item" data-id="{{ movie.media_id }}" data-title="{{ movie.title }}" data-release-date="{{ movie.release_date }}" data-rating="{{ movie.vote_average }}">
                                     <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
                                          alt="{{ movie.title }}">
                                     <p class="title">{{ movie.title | truncate(20) }}</p>
@@ -50,9 +51,9 @@
                 {% if liked_tv_shows %}
                     <div class="trending-section" id="liked-tv-section">
                         <h2>Your Liked TV Shows</h2>
-                        <div class="card-content">
+                        <div class="card-content" id="liked-tv-shows">
                             {% for tv_show in liked_tv_shows %}
-                                <div class="card-item" data-id="{{ tv_show.media_id }}">
+                                <div class="card-item" data-id="{{ tv_show.media_id }}" data-title="{{ tv_show.title }}" data-release-date="{{ tv_show.release_date }}" data-rating="{{ tv_show.vote_average }}">
                                     <img src="https://image.tmdb.org/t/p/w500{{ tv_show.poster_path }}"
                                          alt="{{ tv_show.title }}">
                                     <p class="title">{{ tv_show.title | truncate(20) }}</p>
@@ -131,14 +132,59 @@
                         }
                     }
                 }
-                
-                // SORT FEATURE! does not work
+
+                // SORT FEATURE
                 function sortFavorites(sortBy) {
-                   window.location.href = "/profile?sort_by=" + sortBy;
+                    var cardItemsMovies = $('#liked-movies .card-item').get();
+                    var cardItemsTvShows = $('#liked-tv-shows .card-item').get();
+
+                    if (sortBy === 'alpha') {
+                        cardItemsMovies.sort(function(a, b) {
+                            var titleA = $(a).data('title').toLowerCase();
+                            var titleB = $(b).data('title').toLowerCase();
+                            return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0;
+                        });
+                        cardItemsTvShows.sort(function(a, b) {
+                            var titleA = $(a).data('title').toLowerCase();
+                            var titleB = $(b).data('title').toLowerCase();
+                            return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0;
+                        });
+                    } else if (sortBy === 'release') {
+                        cardItemsMovies.sort(function(a, b) {
+                            var dateA = new Date($(a).data('release-date'));
+                            var dateB = new Date($(b).data('release-date'));
+                            return dateA - dateB;
+                        });
+                        cardItemsTvShows.sort(function(a, b) {
+                            var dateA = new Date($(a).data('release-date'));
+                            var dateB = new Date($(b).data('release-date'));
+                            return dateA - dateB;
+                        });
+                    } else if (sortBy === 'rating') {
+                        cardItemsMovies.sort(function(a, b) {
+                            var ratingA = parseFloat($(a).data('rating'));
+                            var ratingB = parseFloat($(b).data('rating'));
+                            return ratingB - ratingA;
+                        });
+                        cardItemsTvShows.sort(function(a, b) {
+                            var ratingA = parseFloat($(a).data('rating'));
+                            var ratingB = parseFloat($(b).data('rating'));
+                            return ratingB - ratingA;
+                        });
+                    }
+
+                    $.each(cardItemsMovies, function(index, item) {
+                        $('#liked-movies').append(item);
+                    });
+                    $.each(cardItemsTvShows, function(index, item) {
+                        $('#liked-tv-shows').append(item);
+                    });
                 }
 
+                $('#sort').change(function() {
+                    sortFavorites(this.value);
+                });
 
-        
                 $('.favorite-btn').click(function() {
                     var button = $(this);
                     var media_id = button.data('id');
@@ -147,7 +193,7 @@
                     var poster_path = button.data('poster');
                     var vote_average = button.data('vote-average');
                     var csrf_token = "{{ csrf_token() }}";
-        
+
                     $.ajax({
                         url: "{{ url_for('favorite') }}",
                         method: 'POST',
@@ -173,7 +219,7 @@
                         }
                     });
                 });
-        
+
                 checkIfNoLikedMedia();
             });
         </script>
