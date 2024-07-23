@@ -6,8 +6,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from forms import LoginForm, SignupForm
-from models import db, User, Favorite
+from models import db, User, Favorite, UserRating
 from flask_migrate import Migrate
+import random
 
 app = Flask(__name__, instance_relative_config=True)
 app.config['SECRET_KEY'] = 'a6954a670f86a75ebd2521b5dac89289'
@@ -36,7 +37,80 @@ def profile():
     liked_movies = Favorite.query.filter_by(user_id=current_user.id, media_type='movie').all()
     liked_tv_shows = Favorite.query.filter_by(user_id=current_user.id, media_type='tv').all()
     liked_media_ids = [f.media_id for f in Favorite.query.filter_by(user_id=current_user.id).all()]
-    return render_template('profile.html', name=current_user.username, liked_movies=liked_movies, liked_tv_shows=liked_tv_shows, liked_media_ids=liked_media_ids)
+
+    recommended_movies = []
+    recommended_shows = []
+
+    for movie in liked_movies:
+        recommended_movies.extend(get_recommendations('movie', movie.media_id))
+
+    for show in liked_tv_shows:
+        recommended_shows.extend(get_recommendations('tv', show.media_id))
+
+    # Remove duplicate recommendations
+    recommended_movies = list({movie['id']: movie for movie in recommended_movies}.values())
+    recommended_shows = list({show['id']: show for show in recommended_shows}.values())
+
+    # Shuffling due to recs coming in groups and in orderand limit to 10
+    random.shuffle(recommended_movies)
+    random.shuffle(recommended_shows)
+    recommended_movies = recommended_movies[:10]
+    recommended_shows = recommended_shows[:10]
+
+    #Sorting feature. CURRENTLY NOT WORKING
+    sort_by = request.args.get('sort_by', 'default')
+
+    if sort_by == 'alpha':
+        liked_movies = sorted(liked_movies, key=lambda x: x.title)
+        liked_tv_shows = sorted(liked_tv_shows, key=lambda x: x.title)
+    elif sort_by == 'release':
+        # Placeholder if release date can be implemented
+        liked_movies = sorted(liked_movies, key=lambda x: x.media_id)
+        liked_tv_shows = sorted(liked_tv_shows, key=lambda x: x.media_id)
+
+    return render_template('profile.html', 
+                           name=current_user.username, 
+                           liked_movies=liked_movies, 
+                           liked_tv_shows=liked_tv_shows, 
+                           liked_media_ids=liked_media_ids,
+                           recommended_movies=recommended_movies,
+                           recommended_shows=recommended_shows)
+                           
+@app.route('/recommend', methods=['GET'])
+@login_required
+def recommend():
+    media_type = request.args.get('media_type')
+    recommendations = []
+
+    if media_type == 'movie' or media_type == 'tv':
+        favorites = Favorite.query.filter_by(user_id=current_user.id, media_type=media_type).all()
+        for item in favorites:
+            recommendations.extend(get_recommendations(media_type, item.media_id))
+    
+    recommendations = {rec['id']: rec for rec in recommendations}.values()
+    return jsonify(list(recommendations))
+
+def get_recommendations(media_type, media_id):
+    url = f'https://api.themoviedb.org/3/{media_type}/{media_id}/recommendations'
+    params = {'api_key': TMBD_API_KEY}
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json().get('results', [])
+    return []
+
+@app.route('/rate', methods=['POST'])
+@login_required
+def rate():
+    data = request.json
+    media_id = data.get('media_id')
+    rating = data.get('rating')
+    
+    user_rating = UserRating.query.filter_by(user_id=current_user.id, media_id=media_id).first()
+    if user_rating:
+        user_rating.rating = rating
+    else:
+        new_rating = UserRating(user_id=current_user.id, media_id=media_id, rating=rating)
+        db.session.add(new_rating)
 
 @app.route('/favorite', methods=['POST'])
 @login_required
