@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -41,3 +42,26 @@ class MediaRating(db.Model):
 
     def __repr__(self):
         return f'<MediaRating {self.user_id} {self.media_id} {self.media_type} {self.rating}>'
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    media_id = db.Column(db.Integer, nullable=False)
+    media_type = db.Column(db.String(10), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
+    likes = db.relationship('CommentLike', backref='comment', lazy=True)
+    replies = db.relationship('Comment', backref=db.backref('parent', remote_side=[id]), lazy=True)
+    user = db.relationship('User', backref=db.backref('comments', lazy=True))
+
+    def __repr__(self):
+        return f'<Comment {self.text[:20]}...>'
+
+class CommentLike(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<CommentLike {self.user_id} likes {self.comment_id}>'

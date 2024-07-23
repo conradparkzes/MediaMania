@@ -6,7 +6,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from forms import LoginForm, SignupForm
-from models import db, User, Favorite, MediaRating
+from models import db, User, Favorite, MediaRating, Comment, CommentLike
 from flask_migrate import Migrate
 
 app = Flask(__name__, instance_relative_config=True)
@@ -89,6 +89,65 @@ def rate():
     db.session.commit()
 
     return jsonify({'result': 'success'})
+
+@app.route('/comments', methods=['POST'])
+@login_required
+def post_comment():
+    data = request.get_json()
+    media_id = data.get('media_id')
+    media_type = data.get('media_type')
+    text = data.get('text')
+    parent_id = data.get('parent_id')
+
+    new_comment = Comment(
+        user_id=current_user.id,
+        media_id=media_id,
+        media_type=media_type,
+        text=text,
+        parent_id=parent_id
+    )
+    db.session.add(new_comment)
+    db.session.commit()
+
+    return jsonify({'result': 'success', 'comment_id': new_comment.id, 'username': current_user.username, 'timestamp': new_comment.timestamp})
+
+@app.route('/comments/<media_type>/<int:media_id>', methods=['GET'])
+def get_comments(media_type, media_id):
+    comments = Comment.query.filter_by(media_id=media_id, media_type=media_type, parent_id=None).all()
+    return jsonify([{
+        'id': comment.id,
+        'user_id': comment.user_id,
+        'username': comment.user.username,
+        'text': comment.text,
+        'timestamp': comment.timestamp,
+        'likes': len(comment.likes),
+        'replies': [{
+            'id': reply.id,
+            'user_id': reply.user_id,
+            'username': reply.user.username,
+            'text': reply.text,
+            'timestamp': reply.timestamp,
+            'likes': len(reply.likes)
+        } for reply in comment.replies]
+    } for comment in comments])
+
+@app.route('/like_comment', methods=['POST'])
+@login_required
+def like_comment():
+    data = request.get_json()
+    comment_id = data.get('comment_id')
+    existing_like = CommentLike.query.filter_by(user_id=current_user.id, comment_id=comment_id).first()
+
+    if existing_like:
+        db.session.delete(existing_like)
+        db.session.commit()
+        return jsonify({'result': 'unliked'})
+    else:
+        new_like = CommentLike(user_id=current_user.id, comment_id=comment_id)
+        db.session.add(new_like)
+        db.session.commit()
+        return jsonify({'result': 'liked'})
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():

@@ -244,3 +244,36 @@ body {
 .star-rating .star.hovered {
   color: #f2b600;
 }
+
+.comment-section {
+  margin-top: 20px;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
+}
+
+.comment-form, .reply-form {
+  margin-bottom: 20px;
+}
+
+.comment-form textarea, .reply-form textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+}
+
+.comment {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.reply {
+  margin-left: 20px;
+  border-left: 2px solid #ccc;
+  padding-left: 10px;
+}
+
+.like-comment, .reply-comment {
+  margin-right: 10px;
+}
