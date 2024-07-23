@@ -12,6 +12,17 @@
         <div class="container">
             <h1>Profile</h1>
             <h2>Hello, {{ name }}</h2>
+
+            <!--sort feature! currently does not work. See sortby in the script below-->
+            <div class="sort-options">
+                <label for="sort">Sort by:</label>
+                <select id="sort" onchange="sortFavorites(this.value)">
+                    <option value="default">Default</option>
+                    <option value="alpha">Alphabetical</option>
+                    <option value="release">Release Date</option>
+                </select>
+            </div>
+
             <div id="liked-media">
                 {% if liked_movies %}
                     <div class="trending-section" id="liked-movies-section">
@@ -23,6 +34,8 @@
                                          alt="{{ movie.title }}">
                                     <p class="title">{{ movie.title | truncate(20) }}</p>
                                     <p class="rating">Rating: {{ "%.1f"|format(movie.vote_average) if movie.vote_average else "No Rating" }}/10</p>
+                                    <p class="user-rating">Your Rating: {{ movie.user_rating }}/10</p>
+
                                     <button class="favorite-btn"
                                             data-id="{{ movie.media_id }}"
                                             data-type="movie"
@@ -44,12 +57,59 @@
                                          alt="{{ tv_show.title }}">
                                     <p class="title">{{ tv_show.title | truncate(20) }}</p>
                                     <p class="rating">Rating: {{ "%.1f"|format(tv_show.vote_average) if tv_show.vote_average else "No Rating" }}/10</p>
+                                    <p class="user-rating">Your Rating: {{ tv_show.user_rating }}/10</p>
+
                                     <button class="favorite-btn"
                                             data-id="{{ tv_show.media_id }}"
                                             data-type="tv"
                                             data-title="{{ tv_show.title }}"
                                             data-poster="{{ tv_show.poster_path }}"
                                             data-vote-average="{{ tv_show.vote_average }}">Unfavorite</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div id="recommended-media">
+                {% if recommended_movies %}
+                    <div class="trending-section" id="recommended-movies-section">
+                        <h2>Recommended Movies</h2>
+                        <div class="card-content">
+                            {% for movie in recommended_movies %}
+                                <div class="card-item" data-id="{{ movie.id }}">
+                                    <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                                         alt="{{ movie.title }}">
+                                    <p class="title">{{ movie.title | truncate(20) }}</p>
+                                    <p class="rating">Rating: {{ "%.1f"|format(movie.vote_average) if movie.vote_average else "No Rating" }}/10</p>
+                                    <button class="favorite-btn"
+                                            data-id="{{ movie.id }}"
+                                            data-type="movie"
+                                            data-title="{{ movie.title }}"
+                                            data-poster="{{ movie.poster_path }}"
+                                            data-vote-average="{{ movie.vote_average }}">Favorite</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                {% if recommended_shows %}
+                    <div class="trending-section" id="recommended-shows-section">
+                        <h2>Recommended TV Shows</h2>
+                        <div class="card-content">
+                            {% for show in recommended_shows %}
+                                <div class="card-item" data-id="{{ show.id }}">
+                                    <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}"
+                                         alt="{{ show.name }}">
+                                    <p class="title">{{ show.name | truncate(20) }}</p>
+                                    <p class="rating">Rating: {{ "%.1f"|format(show.vote_average) if show.vote_average else "No Rating" }}/10</p>
+                                    <button class="favorite-btn"
+                                            data-id="{{ show.id }}"
+                                            data-type="tv"
+                                            data-title="{{ show.name }}"
+                                            data-poster="{{ show.poster_path }}"
+                                            data-vote-average="{{ show.vote_average }}">Favorite</button>
                                 </div>
                             {% endfor %}
                         </div>
@@ -71,6 +131,13 @@
                         }
                     }
                 }
+                
+                // SORT FEATURE! does not work
+                function sortFavorites(sortBy) {
+                   window.location.href = "/profile?sort_by=" + sortBy;
+                }
+
+
         
                 $('.favorite-btn').click(function() {
                     var button = $(this);
