@@ -24,3 +24,9 @@ class Favorite(db.Model):
     title = db.Column(db.String(100), nullable=False)
     poster_path = db.Column(db.String(200), nullable=True)
     vote_average = db.Column(db.Float, nullable=True)
+
+class UserRating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    media_id = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
