@@ -38,8 +38,9 @@
     <script>
         $(document).ready(function() {
             var liked_media_ids = {{ liked_media_ids|tojson|safe }};
-            var csrf_token = "{{ csrf_token() }}";
+            var user_rating = {{ user_rating|tojson|safe }};
             console.log("Liked media IDs:", liked_media_ids);
+            console.log("User rating:", {{ user_rating }});
 
             var button = $('.favorite-btn');
             var media_id = button.data('id');
@@ -57,7 +58,7 @@
                 var vote_average = button.data('vote-average');
                 var csrf_token = "{{ csrf_token() }}";
 
-                console.log(`Favorite button clicked for media_id: ${media_id}, media_type: ${media_type}, title: ${title}`);
+                // console.log(`Favorite button clicked for media_id: ${media_id}, media_type: ${media_type}, title: ${title}`);
 
                 $.ajax({
                     url: "{{ url_for('favorite') }}",
@@ -93,7 +94,6 @@
                     }
                 });
             }
-
 
             $('.star').hover(
                 function() {
