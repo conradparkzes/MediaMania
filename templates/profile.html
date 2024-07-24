@@ -185,6 +185,19 @@
                     sortFavorites(this.value);
                 });
 
+                var liked_media_ids = {{ liked_media_ids|tojson|safe }};
+                console.log("Liked media IDs:", liked_media_ids);
+
+                $('.favorite-btn').each(function() {
+                    var button = $(this);
+                    var media_id = button.data('id');
+                    if (liked_media_ids.includes(media_id)) {
+                        button.text('Unfavorite').css('background-color', '#ff0000');
+                    } else {
+                        button.text('Favorite').css('background-color', '#28a745');
+                    }
+                });
+
                 $('.favorite-btn').click(function() {
                     var button = $(this);
                     var media_id = button.data('id');
