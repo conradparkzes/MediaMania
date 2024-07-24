@@ -11,11 +11,20 @@
         {% include 'navbar.html' %}
         <div class="container">
             <h1>Search Results for "{{ keyword }}"</h1>
+                        <!--sort feature!-->
+            <div class="sort-options">
+                <label for="sort">Sort by:</label>
+                <select id="sort" onchange="sortFavorites(this.value)">
+                    <option value="default">Relevance</option>
+                    <option value="alpha">Alphabetical</option>
+                    <option value="rating">Rating</option>
+                </select>
+            </div>
             <div class="trending-section">
                 <h2>Results</h2>
-                <div class="card-content">
+                <div class="card-content" >
                     {% for result in search_results %}
-                        <div class="card-item">
+                        <div class="card-item"  data-title="{{ result.title or result.name }}" data-vote-average="{{ result.vote_average }}">
                             <a href="{{ url_for('media_detail', media_type=result.media_type, media_id=result.id) }}">
                                 <img src="https://image.tmdb.org/t/p/w500{{ result.poster_path or result.backdrop_path }}"
                                      alt="{{ result.title or result.name }}">
@@ -49,6 +58,33 @@
                 button.text('Favorite').css('background-color', '#28a745');
             }
         });
+
+        $('#sort').change(function() {
+                    sortFavorites(this.value);
+                });
+
+        function sortFavorites(sortBy) {
+            var cardItems = $('.card-item').get();
+
+            if (sortBy === 'alpha') {
+                cardItems.sort(function(a, b) {
+                    var titleA = $(a).data('title').toLowerCase();
+                    var titleB = $(b).data('title').toLowerCase();
+                    return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0;
+                });
+            } else if (sortBy === 'rating') {
+                cardItems.sort(function(a, b) {
+                    var ratingA = parseFloat($(a).data('vote-average'));
+                    var ratingB = parseFloat($(b).data('vote-average'));
+                    return ratingB - ratingA;
+                });
+            }
+
+            $.each(cardItems, function(index, item) {
+                $('.card-content').append(item);
+            });
+        }
+
 
         $('.favorite-btn').click(function() {
             var button = $(this);

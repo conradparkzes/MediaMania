@@ -19,7 +19,6 @@
                 <select id="sort" onchange="sortFavorites(this.value)">
                     <option value="default">Relevance</option>
                     <option value="alpha">Alphabetical</option>
-                    <option value="release">Release Date</option>
                     <option value="rating">Rating</option>
                 </select>
             </div>
@@ -30,7 +29,7 @@
                         <h2>Your Liked Movies</h2>
                         <div class="card-content">
                             {% for movie in liked_movies %}
-                                <div class="card-item" data-id="{{ movie.media_id }}">
+                                <div class="card-item" data-id="{{ movie.media_id }}" data-title="{{ movie.title }}" data-release-date="{{ movie.release_date }}" data-vote-average="{{ movie.vote_average }}">
                                     <a href="{{ url_for('media_detail', media_type='movie', media_id=movie.media_id) }}">
                                         <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
                                             alt="{{ movie.title }}">
@@ -55,7 +54,7 @@
                         <h2>Your Liked TV Shows</h2>
                         <div class="card-content">
                             {% for tv_show in liked_tv_shows %}
-                                <div class="card-item" data-id="{{ tv_show.media_id }}">
+                                <div class="card-item" data-id="{{ tv_show.media_id }}" data-title="{{ tv_show.title }}" data-release-date="{{ tv_show.release_date }}" data-vote-average="{{ tv_show.vote_average }}">
                                     <!-- <img src="https://image.tmdb.org/t/p/w500{{ tv_show.poster_path }}"
                                          alt="{{ tv_show.title }}"> -->
                                     <a href="{{ url_for('media_detail', media_type='tv', media_id=tv_show.media_id) }}">
@@ -142,10 +141,9 @@
                     }
                 }
 
-                // SORT FEATURE
                 function sortFavorites(sortBy) {
-                    var cardItemsMovies = $('#liked-movies .card-item').get();
-                    var cardItemsTvShows = $('#liked-tv-shows .card-item').get();
+                    var cardItemsMovies = $('#liked-movies-section .card-item').get();
+                    var cardItemsTvShows = $('#liked-tv-section .card-item').get();
 
                     if (sortBy === 'alpha') {
                         cardItemsMovies.sort(function(a, b) {
@@ -158,37 +156,27 @@
                             var titleB = $(b).data('title').toLowerCase();
                             return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0;
                         });
-                    } else if (sortBy === 'release') {
-                        cardItemsMovies.sort(function(a, b) {
-                            var dateA = new Date($(a).data('release-date'));
-                            var dateB = new Date($(b).data('release-date'));
-                            return dateA - dateB;
-                        });
-                        cardItemsTvShows.sort(function(a, b) {
-                            var dateA = new Date($(a).data('release-date'));
-                            var dateB = new Date($(b).data('release-date'));
-                            return dateA - dateB;
-                        });
                     } else if (sortBy === 'rating') {
                         cardItemsMovies.sort(function(a, b) {
-                            var ratingA = parseFloat($(a).data('rating'));
-                            var ratingB = parseFloat($(b).data('rating'));
+                            var ratingA = parseFloat($(a).data('vote-average'));
+                            var ratingB = parseFloat($(b).data('vote-average'));
                             return ratingB - ratingA;
                         });
                         cardItemsTvShows.sort(function(a, b) {
-                            var ratingA = parseFloat($(a).data('rating'));
-                            var ratingB = parseFloat($(b).data('rating'));
+                            var ratingA = parseFloat($(a).data('vote-average'));
+                            var ratingB = parseFloat($(b).data('vote-average'));
                             return ratingB - ratingA;
                         });
                     }
 
                     $.each(cardItemsMovies, function(index, item) {
-                        $('#liked-movies').append(item);
+                        $('#liked-movies-section .card-content').append(item);
                     });
                     $.each(cardItemsTvShows, function(index, item) {
-                        $('#liked-tv-shows').append(item);
+                        $('#liked-tv-section .card-content').append(item);
                     });
                 }
+
 
                 $('#sort').change(function() {
                     sortFavorites(this.value);
