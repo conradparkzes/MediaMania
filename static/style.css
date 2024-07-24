@@ -1,6 +1,89 @@
+@font-face {
+  font-family: 'Netflix Sans';
+  font-weight: 100;
+  font-display: optional;
+  src: url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Th.woff2) format('woff2'),url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Th.woff) format('woff')
+}
+
+@font-face {
+  font-family: 'Netflix Sans';
+  font-weight: 300;
+  font-display: optional;
+  src: url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Lt.woff2) format('woff2'),url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Lt.woff) format('woff')
+}
+
+@font-face {
+  font-family: 'Netflix Sans';
+  font-weight: 400;
+  font-display: optional;
+  src: url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Rg.woff2) format('woff2'),url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Rg.woff) format('woff')
+}
+
+@font-face {
+  font-family: 'Netflix Sans';
+  font-weight: 700;
+  font-display: optional;
+  src: url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Md.woff2) format('woff2'),url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Md.woff) format('woff')
+}
+
+@font-face {
+  font-family: 'Netflix Sans';
+  font-weight: 800;
+  font-display: optional;
+  src: url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Bd.woff2) format('woff2'),url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Bd.woff) format('woff')
+}
+
+@font-face {
+  font-family: 'Netflix Sans';
+  font-weight: 900;
+  font-display: optional;
+  src: url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Blk.woff2) format('woff2'),url(https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Blk.woff) format('woff')
+}
+
+.netflix-sans-font-loaded {
+  font-family: 'Netflix Sans','Helvetica Neue',Helvetica,Arial,sans-serif
+}
+
+.netflix-sans-font-loaded.nkufi-font-loaded {
+  font-family: NKufi,'Netflix Sans','Helvetica Neue',Helvetica,Arial,sans-serif
+}
+
+.netflix-sans-font-loaded.graphik-font-loaded {
+  font-family: GraphikTH,'Netflix Sans','Helvetica Neue',Helvetica,Arial,sans-serif
+}
+
+.error-page {
+  font-family: 'Netflix Sans','Helvetica Neue',Helvetica,Arial,sans-serif;
+  font-size: 10px;
+  line-height: 1.2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #fff;
+  background: rgba(0,0,0,.18);
+  bottom: 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -moz-box-orient: vertical;
+  -moz-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  left: 0;
+  margin-top: 68px;
+  overflow: hidden;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1000
+}
 
 body {
-  font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Netflix Sans';
   background-color: #141414;
   color: #ffffff;
   margin: 0;
@@ -27,7 +110,7 @@ body {
 }
 
 .navbar .logo a {
-  color: #a00000;
+  color: #e50914;
   text-decoration: none;
   font-size: 1.8rem;
   font-weight: bold;
@@ -94,7 +177,7 @@ body {
 .card-content {
   display: flex;
   overflow-x: auto;
-  overflow-y: visible; /* Changed from hidden to visible */
+  overflow-y: visible;
   scroll-behavior: smooth;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -111,8 +194,8 @@ body {
   padding: 0 0.2vw;
   box-sizing: border-box;
   transition: transform 0.3s ease;
-  position: relative; /* Added */
-  z-index: 1; /* Added */
+  position: relative;
+  z-index: 1;
 }
 
 .card-item:hover {
@@ -122,7 +205,7 @@ body {
 
 .card-item img {
   width: 100%;
-  border-radius: 4px 4px 0 0; /* Changed */
+  border-radius: 4px 4px 0 0;
 }
 
 .card-item .info {
@@ -132,10 +215,10 @@ body {
   background: #181818;
   padding: 10px;
   border-radius: 0 0 4px 4px;
-  position: absolute; /* Added */
-  bottom: 0; /* Added */
-  left: 0; /* Added */
-  right: 0; /* Added */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .card-item:hover .info {
@@ -150,9 +233,9 @@ body {
 }
 
 .card-item .rating {
-  font-size: 0.8em;
   font-weight: 500;
-  color: #e53636;
+  font-size: 0.8em;
+  color: #E53636;
 }
 
 .card-item .favorite-btn {
@@ -165,7 +248,7 @@ body {
   font-weight: bold;
   margin-top: 0.5em;
   cursor: pointer;
-  width: 100%; /* Added */
+  width: 100%;
 }
 
 /* Auth Form */
@@ -199,7 +282,7 @@ body {
 .auth-form button {
   width: 100%;
   height: 50px;
-  background: #a00000;
+  background: #e50914;
   color: white;
   font-size: 16px;
   font-weight: 500;
@@ -229,61 +312,94 @@ body {
 .search-form button {
   padding: 10px 20px;
   border: none;
-  background-color: #a00000;
+  background-color: #e50914;
   color: white;
   cursor: pointer;
   font-size: 16px;
 }
 
-/* Media Detail - Reverted to previous version */
+/* Media Detail Page */
 .media-detail {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  text-align: left;
-  padding: 0 4%;
+  margin-bottom: 40px;
 }
 
-.media-detail img {
+.media-poster {
+  flex-shrink: 0;
+  width: 300px;
+  margin-right: 40px;
+}
+
+.media-poster img {
   width: 100%;
-  max-width: 600px;
-  border-radius: 4px;
-  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-.media-detail h1 {
-  font-size: 40px;
-  font-weight: bold;
+.media-info {
+  flex-grow: 1;
+}
+
+.media-info h1 {
+  font-size: 2.5rem;
   margin-bottom: 10px;
+  color: #ffffff;
 }
 
-.media-detail .rating {
-  font-size: 18px;
+.media-info .rating {
   font-weight: 500;
-  color: #e53636;
+  font-size: 1.2rem;
+  color: #E53636;
   margin-bottom: 20px;
 }
 
-.media-detail .overview {
-  max-width: 600px;
-  margin-bottom: 20px;
-  font-size: 18px;
+.media-info .overview {
+  font-size: 1rem;
   line-height: 1.6;
+  margin-bottom: 20px;
+  color: #cccccc;
 }
 
-.media-detail .favorite-btn {
-  background-color: rgba(255, 255, 255, 0.1);
+.media-info .additional-info {
+  margin-bottom: 20px;
+}
+
+.media-info .additional-info p {
+  margin-bottom: 5px;
+  color: #999999;
+}
+
+.media-info .favorite-btn {
+  background-color: #e50914;
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: none;
   padding: 10px 20px;
-  border-radius: 2px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
   transition: background-color 0.3s;
+  margin-right: 20px;
 }
 
-.media-detail .favorite-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+.media-info .favorite-btn:hover {
+  background-color: #f40612;
+}
+
+.media-info .star-rating {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.media-info .star-rating .star {
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.media-info .star-rating .star.gold {
+  color: #ffd700;
 }
 
 /* Star Rating */
@@ -303,149 +419,153 @@ body {
 
 .star-rating .star.gold,
 .star-rating .star.hovered {
-  color: #c5000a;
+  color: #e50914;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .navbar {
-    padding: 0 2%;
+  .media-detail {
+    flex-direction: column;
   }
 
-  .container {
-    padding: 70px 2% 20px;
+  .media-poster {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto 20px;
   }
 
-  .card-item {
-    width: 33.333333%;
+  .media-info {
+    width: 100%;
   }
 }
 
-/* ... (previous CSS remains unchanged) ... */
+
 
 /* Profile Page */
-.profile-page {
-  padding: 70px 4% 20px;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 70px 20px 20px;
 }
 
-.profile-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.profile-avatar {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background-color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 30px;
-}
-
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.profile-info h1 {
+/* Profile Page */
+.profile-page h1 {
   font-size: 2.5rem;
-  margin-bottom: 10px;
-}
-
-.profile-info p {
-  font-size: 1.2rem;
-  color: #999;
-}
-
-.liked-movies {
-  margin-top: 50px;
-}
-
-.liked-movies h2 {
-  font-size: 1.8rem;
   margin-bottom: 20px;
+  color: #ffffff;
+}
+
+.profile-page h2 {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: #e5e5e5;
+}
+
+/* Liked Media and Recommended Media Sections */
+#liked-media,
+#recommended-media {
+  margin-bottom: 40px;
+}
+
+/* Trending Section (*/
+.trending-section {
+  margin-bottom: 30px;
+  padding: 0 20px;
+}
+
+.trending-section h2 {
+  font-size: 1.4rem;
   font-weight: 500;
+  margin-bottom: 15px;
+  color: #e5e5e5;
 }
 
-.liked-movies-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+/* Card Content and Items */
+.card-content {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  padding: 10px 0;
+  margin: 0 -8px;
 }
 
-.liked-movie-item {
-  position: relative;
+.card-content::-webkit-scrollbar {
+  display: none;
+}
+
+.card-item {
+  flex: 0 0 auto;
+  width: 150px;
+  padding: 0 8px;
   transition: transform 0.3s ease;
 }
 
-.liked-movie-item:hover {
+.card-item:hover {
   transform: scale(1.05);
 }
 
-.liked-movie-item img {
+.card-item img {
   width: 100%;
   border-radius: 4px;
+  margin-bottom: 8px;
 }
 
-.liked-movie-item .title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px;
-  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
-  color: #fff;
-  font-size: 0.9rem;
+.card-item .title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.liked-movie-item .remove-btn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #fff;
+.card-item .rating {
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: #E53636;
+  margin-bottom: 4px;
+}
+
+.card-item button {
+  width: 100%;
+  padding: 6px;
   border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  font-size: 1.2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  border-radius: 4px;
+  background-color: #e50914;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: bold;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
-.liked-movie-item:hover .remove-btn {
-  opacity: 1;
+.card-item button:hover {
+  background-color: #f40612;
 }
 
-.liked-movie-item .remove-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .trending-section {
+    padding: 0 15px;
+  }
 }
 
 @media (max-width: 768px) {
-  .profile-header {
-    flex-direction: column;
-    text-align: center;
+  .card-item {
+    width: 130px;
   }
 
-  .profile-avatar {
-    margin-right: 0;
-    margin-bottom: 20px;
-  }
-
-  .liked-movies-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  .trending-section {
+    padding: 0 10px;
   }
 }
 
@@ -531,9 +651,9 @@ body {
 }
 
 .card-item .rating {
-  font-size: 0.8em;
   font-weight: 500;
-  color: #e53636;
+  font-size: 0.8em;
+  color: #E53636;
   margin-bottom: 0.5em;
 }
 
@@ -542,7 +662,7 @@ body {
   padding: 8px;
   border: none;
   border-radius: 4px;
-  background-color: #ff0000;
+  background-color: #e50914;
   color: white;
   font-size: 0.9em;
   font-weight: bold;
@@ -551,7 +671,7 @@ body {
 }
 
 .card-item .favorite-btn:hover {
-  background-color: #cc0000;
+  background-color: #e50914;
 }
 
 @media (max-width: 768px) {
