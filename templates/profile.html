@@ -194,6 +194,8 @@
                     sortFavorites(this.value);
                 });
 
+                var liked_media_ids = {{ liked_media_ids|tojson|safe }};
+                console.log("Liked media IDs:", liked_media_ids);
                 // unfavorite button initially red
                 $('.favorite-btn').each(function() {
                     var button = $(this);
