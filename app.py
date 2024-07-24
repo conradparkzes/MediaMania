@@ -54,8 +54,9 @@ def favorite():
     favorite = Favorite.query.filter_by(user_id=current_user.id, media_id=media_id, media_type=media_type).first()
     if favorite:
         db.session.delete(favorite)
-        db.session.commit()
-        return jsonify({'result': 'removed'})
+        # db.session.commit()
+        # return jsonify({'result': 'removed'})
+        result = 'removed'
     else:
         new_favorite = Favorite(
             user_id=current_user.id,
@@ -66,8 +67,12 @@ def favorite():
             vote_average=vote_average
         )
         db.session.add(new_favorite)
-        db.session.commit()
-        return jsonify({'result': 'added'})
+        # db.session.commit()
+        # return jsonify({'result': 'added'})
+        result = 'added'
+
+    db.session.commit()
+    return jsonify({'result': result})
 
 @app.route('/rate', methods=['POST'])
 @login_required

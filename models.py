@@ -27,6 +27,7 @@ class Favorite(db.Model):
     poster_path = db.Column(db.String(200), nullable=True)
     vote_average = db.Column(db.Float, nullable=True)
     rating = db.Column(db.Integer, nullable=True)
+    # timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
         return f'<Favorite {self.title}>'

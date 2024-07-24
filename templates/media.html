@@ -21,7 +21,7 @@
             <p><strong>Language:</strong> {{ language }}</p>
             <p><strong>Country:</strong> {{ country }}</p>
             {% if current_user.is_authenticated %}
-                <button class="favorite-btn"
+                <button id="favorite-btn"
                         data-id="{{ media.id }}"
                         data-type="{{ media_type }}"
                         data-title="{{ media.title or media.name }}"
@@ -38,27 +38,26 @@
     <script>
         $(document).ready(function() {
             var liked_media_ids = {{ liked_media_ids|tojson|safe }};
-            var user_rating = {{ user_rating|tojson|safe }};
-            console.log("Liked media IDs:", liked_media_ids);
-            console.log("User rating:", {{ user_rating }});
+            var csrf_token = "{{ csrf_token() }}";
+            var favoriteBtn = $('#favorite-btn');
+            var media_id = favoriteBtn.data('id');
 
-            var button = $('.favorite-btn');
-            var media_id = button.data('id');
-            if (liked_media_ids.includes(media_id.toString())) {  // Changed to string comparison
-                button.text('Unfavorite').css('background-color', '#ff0000');
-            } else {
-                button.text('Favorite').css('background-color', '#28a745');
+            function updateFavoriteButton(isLiked) {
+                if (isLiked) {
+                    favoriteBtn.text('Unfavorite').css('background-color', '#ff0000');
+                } else {
+                    favoriteBtn.text('Favorite').css('background-color', '#28a745');
+                }
             }
 
-            button.click(function() {
-                var media_id = button.data('id');
-                var media_type = button.data('type');
-                var title = button.data('title');
-                var poster_path = button.data('poster');
-                var vote_average = button.data('vote-average');
-                var csrf_token = "{{ csrf_token() }}";
+            var isLiked = liked_media_ids.includes(media_id);
+            updateFavoriteButton(isLiked);
 
-                // console.log(`Favorite button clicked for media_id: ${media_id}, media_type: ${media_type}, title: ${title}`);
+            favoriteBtn.click(function() {
+                var media_type = favoriteBtn.data('type');
+                var title = favoriteBtn.data('title');
+                var poster_path = favoriteBtn.data('poster');
+                var vote_average = favoriteBtn.data('vote-average');
 
                 $.ajax({
                     url: "{{ url_for('favorite') }}",
@@ -75,11 +74,8 @@
                         vote_average: vote_average
                     }),
                     success: function(response) {
-                        if (response.result === 'added') {
-                            button.text('Unfavorite').css('background-color', '#ff0000');
-                        } else {
-                            button.text('Favorite').css('background-color', '#28a745');
-                        }
+                        isLiked = response.result === 'added';
+                        updateFavoriteButton(isLiked);
                     },
                     error: function(error) {
                         console.error('Error in favorite request:', error);
@@ -87,6 +83,7 @@
                 });
             });
 
+            var user_rating = {{ user_rating|tojson|safe }};
             if (user_rating) {
                 $('.star').each(function() {
                     if ($(this).data('value') <= user_rating) {
@@ -108,7 +105,6 @@
                 var rating = $(this).data('value');
                 var media_id = $(this).parent().data('id');
                 var media_type = $(this).parent().data('type');
-                var csrf_token = "{{ csrf_token() }}";
 
                 if ($(this).hasClass('gold')) {
                     rating = 0; // reset rating to 0 if current star is clicked again
@@ -254,17 +250,15 @@
                 if (!text.trim()) return;
 
                 $.ajax({
-                    url: '/comments',
+                    url: '/reply_comment',
                     method: 'POST',
                     contentType: 'application/json',
                     headers: {
                         'X-CSRFToken': csrf_token
                     },
                     data: JSON.stringify({
-                        media_id: media_id,
-                        media_type: media_type,
-                        text: text,
-                        parent_id: comment_id
+                        comment_id: comment_id,
+                        text: text
                     }),
                     success: function(response) {
                         fetchComments();
