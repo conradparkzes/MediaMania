@@ -128,6 +128,9 @@
 
         <script>
             $(document).ready(function() {
+                var liked_media_ids = {{ liked_media_ids|tojson|safe }};
+                console.log("Liked media IDs:", liked_media_ids);
+            
                 function checkIfNoLikedMedia() {
                     if ($('#liked-media .card-item').length === 0) {
                         $('#liked-media').html('<h2 style="text-align: center">No Liked Media...</h2>');
@@ -182,8 +185,6 @@
                     sortFavorites(this.value);
                 });
 
-                var liked_media_ids = {{ liked_media_ids|tojson|safe }};
-                console.log("Liked media IDs:", liked_media_ids);
                 // unfavorite button initially red
                 $('.favorite-btn').each(function() {
                     var button = $(this);
@@ -222,6 +223,21 @@
                             if (response.result === 'removed') {
                                 button.closest('.card-item').remove();
                                 checkIfNoLikedMedia();
+                            } else if (response.result === 'added') {
+                                button.text('Unfavorite').css('background-color', '#ff0000');
+                                
+                                // Move item to the liked section
+                                var cardItem = button.closest('.card-item').clone();
+                                cardItem.find('.favorite-btn').text('Unfavorite').css('background-color', '#ff0000');
+                                
+                                if (media_type === 'movie') {
+                                    $('#liked-movies-section .card-content').append(cardItem);
+                                } else if (media_type === 'tv') {
+                                    $('#liked-tv-section .card-content').append(cardItem);
+                                }
+                                
+                                // Remove item from recommended section
+                                button.closest('.card-item').remove();
                             }
                         },
                         error: function(error) {
