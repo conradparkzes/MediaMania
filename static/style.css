@@ -151,7 +151,8 @@ body {
 
 .card-item .rating {
   font-size: 0.8em;
-  color: #a00000;
+  font-weight: 500;
+  color: #e53636;
 }
 
 .card-item .favorite-btn {
@@ -258,7 +259,8 @@ body {
 
 .media-detail .rating {
   font-size: 18px;
-  color: #a00000;
+  font-weight: 500;
+  color: #e53636;
   margin-bottom: 20px;
 }
 
@@ -530,7 +532,8 @@ body {
 
 .card-item .rating {
   font-size: 0.8em;
-  color: #a00000;
+  font-weight: 500;
+  color: #e53636;
   margin-bottom: 0.5em;
 }
 
