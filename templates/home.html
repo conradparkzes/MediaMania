@@ -24,8 +24,10 @@
                 <div class="card-content">
                     {% for movie in trending_movies %}
                         <div class="card-item">
-                            <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
-                                 alt="{{ movie.title }}">
+                            <a href="{{ url_for('media_detail', media_type='movie', media_id=movie.id) }}">
+                                <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                                     alt="{{ movie.title }}">
+                            </a>
                             <p class="title">{{ movie.title | truncate(20) }}</p>
                             <p class="rating">Rating: {{ "%.1f"|format(movie.vote_average) if movie.vote_average else "No Rating" }}/10</p>
                             {% if current_user.is_authenticated %}
@@ -45,8 +47,9 @@
                 <div class="card-content">
                     {% for show in trending_shows %}
                         <div class="card-item">
-                            <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}"
-                                 alt="{{ show.name }}">
+                            <a href="{{ url_for('media_detail', media_type='tv', media_id=show.id) }}">
+                                <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}" alt="{{ show.name }}">
+                            </a>
                             <p class="title">{{ show.name | truncate(20) }}</p>
                             <p class="rating">Rating: {{ "%.1f"|format(show.vote_average) if show.vote_average else "No Rating" }}/10</p>
                             {% if current_user.is_authenticated %}

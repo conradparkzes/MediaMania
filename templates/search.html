@@ -16,8 +16,10 @@
                 <div class="card-content">
                     {% for result in search_results %}
                         <div class="card-item">
-                            <img src="https://image.tmdb.org/t/p/w500{{ result.poster_path or result.backdrop_path }}"
-                                 alt="{{ result.title or result.name }}">
+                            <a href="{{ url_for('media_detail', media_type=result.media_type, media_id=result.id) }}">
+                                <img src="https://image.tmdb.org/t/p/w500{{ result.poster_path or result.backdrop_path }}"
+                                     alt="{{ result.title or result.name }}">
+                            </a>
                             <p class="title">{{ result.title or result.name | truncate(20) }}</p>
                             <p class="rating">Rating: {{ "%.1f"|format(result.vote_average) if result.vote_average else "No Rating" }}/10</p>
                             {% if current_user.is_authenticated %}

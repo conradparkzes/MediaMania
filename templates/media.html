@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ media.title or media.name }} - MediaMania</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <div class="media-detail">
+            <img src="https://image.tmdb.org/t/p/w500{{ media.poster_path }}" alt="{{ media.title or media.name }}">
+            <h1>{{ media.title or media.name }}</h1>
+            <p class="rating">Rating: {{ "%.1f"|format(media.vote_average) if media.vote_average else "No Rating" }}/10</p>
+            <p class="overview">{{ media.overview }}</p>
+            <p><strong>Year:</strong> {{ year }}</p>
+            <p><strong>Maturity Rating:</strong> {{ maturity_rating }}</p>
+            <p><strong>IMDB Rating:</strong> {{ imdb_rating }}</p>
+            <p><strong>Language:</strong> {{ language }}</p>
+            <p><strong>Country:</strong> {{ country }}</p>
+            {% if current_user.is_authenticated %}
+                <button id="favorite-btn"
+                        data-id="{{ media.id }}"
+                        data-type="{{ media_type }}"
+                        data-title="{{ media.title or media.name }}"
+                        data-poster="{{ media.poster_path }}"
+                        data-vote-average="{{ media.vote_average }}">Favorite</button>
+                <div class="star-rating" data-id="{{ media.id }}" data-type="{{ media_type }}">
+                    {% for i in range(1, 6) %}
+                        <span class="star {% if user_rating and user_rating >= i %}gold{% endif %}" data-value="{{ i }}">&#9733;</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            var liked_media_ids = {{ liked_media_ids|tojson|safe }};
+            var csrf_token = "{{ csrf_token() }}";
+            var favoriteBtn = $('#favorite-btn');
+            var media_id = favoriteBtn.data('id');
+
+            function updateFavoriteButton(isLiked) {
+                if (isLiked) {
+                    favoriteBtn.text('Unfavorite').css('background-color', '#ff0000');
+                } else {
+                    favoriteBtn.text('Favorite').css('background-color', '#28a745');
+                }
+            }
+
+            var isLiked = liked_media_ids.includes(media_id);
+            updateFavoriteButton(isLiked);
+
+            favoriteBtn.click(function() {
+                var media_type = favoriteBtn.data('type');
+                var title = favoriteBtn.data('title');
+                var poster_path = favoriteBtn.data('poster');
+                var vote_average = favoriteBtn.data('vote-average');
+
+                $.ajax({
+                    url: "{{ url_for('favorite') }}",
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({
+                        media_id: media_id,
+                        media_type: media_type,
+                        title: title,
+                        poster_path: poster_path,
+                        vote_average: vote_average
+                    }),
+                    success: function(response) {
+                        isLiked = response.result === 'added';
+                        updateFavoriteButton(isLiked);
+                    },
+                    error: function(error) {
+                        console.error('Error in favorite request:', error);
+                    }
+                });
+            });
+
+            var user_rating = {{ user_rating|tojson|safe }};
+            if (user_rating) {
+                $('.star').each(function() {
+                    if ($(this).data('value') <= user_rating) {
+                        $(this).addClass('gold');
+                    }
+                });
+            }
+
+            $('.star').hover(
+                function() {
+                    $(this).prevAll().addBack().addClass('hovered');
+                    $(this).nextAll().removeClass('hovered');
+                }, function() {
+                    $(this).siblings().addBack().removeClass('hovered');
+                }
+            );
+
+            $('.star').click(function() {
+                var rating = $(this).data('value');
+                var media_id = $(this).parent().data('id');
+                var media_type = $(this).parent().data('type');
+
+                if ($(this).hasClass('gold')) {
+                    rating = 0; // reset rating to 0 if current star is clicked again
+                }
+
+                $.ajax({
+                    url: '{{ url_for("rate") }}',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({
+                        media_id: media_id,
+                        media_type: media_type,
+                        rating: rating
+                    }),
+                    success: function(response) {
+                        $('.star').removeClass('gold');
+                        if (rating > 0) {
+                            $('.star').each(function() {
+                                if ($(this).data('value') <= rating) {
+                                    $(this).addClass('gold');
+                                }
+                            });
+                        }
+                    },
+                    error: function(response) {
+                        console.error('Error in rating request:', response);
+                    }
+                });
+            });
+        });
+    </script>
+    <div class="comment-section">
+        <h2>Comments</h2>
+        {% if current_user.is_authenticated %}
+            <div class="comment-form">
+                <textarea id="comment-text" placeholder="Add a comment..."></textarea>
+                <button id="post-comment" data-media-id="{{ media.id }}" data-media-type="{{ media_type }}">Post Comment</button>
+            </div>
+        {% endif %}
+        <div id="comments-container"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var csrf_token = "{{ csrf_token() }}";
+            var media_id = "{{ media.id }}";
+            var media_type = "{{ media_type }}";
+
+            function fetchComments() {
+                $.ajax({
+                    url: `/comments/${media_type}/${media_id}`,
+                    method: 'GET',
+                    success: function(response) {
+                        $('#comments-container').empty();
+                        response.forEach(function(comment) {
+                            var commentHtml = `<div class="comment" data-id="${comment.id}">
+                                <p><strong>${comment.username}</strong> ${comment.timestamp}</p>
+                                <p>${comment.text}</p>
+                                <button class="like-comment" data-id="${comment.id}">Like (${comment.likes})</button>
+                                {% if current_user.is_authenticated %}
+                                <button class="reply-comment" data-id="${comment.id}">Reply</button>
+                                <div class="reply-form" data-id="${comment.id}" style="display:none;">
+                                    <textarea class="reply-text" data-id="${comment.id}" placeholder="Reply..."></textarea>
+                                    <button class="post-reply" data-id="${comment.id}">Post Reply</button>
+                                </div>
+                                {% endif %}
+                                <div class="replies-container" data-id="${comment.id}">
+                                    ${comment.replies.map(reply => `<div class="comment reply" data-id="${reply.id}">
+                                        <p><strong>${reply.username}</strong> ${reply.timestamp}</p>
+                                        <p>${reply.text}</p>
+                                        <button class="like-comment" data-id="${reply.id}">Like (${reply.likes})</button>
+                                    </div>`).join('')}
+                                </div>
+                            </div>`;
+                            $('#comments-container').append(commentHtml);
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error fetching comments:', error);
+                    }
+                });
+            }
+
+            fetchComments();
+
+            $('#post-comment').click(function() {
+                var text = $('#comment-text').val();
+                if (!text.trim()) return;
+
+                $.ajax({
+                    url: '/comments',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({
+                        media_id: media_id,
+                        media_type: media_type,
+                        text: text
+                    }),
+                    success: function(response) {
+                        $('#comment-text').val('');
+                        fetchComments();
+                    },
+                    error: function(error) {
+                        console.error('Error posting comment:', error);
+                    }
+                });
+            });
+
+            $(document).on('click', '.like-comment', function() {
+                var comment_id = $(this).data('id');
+
+                $.ajax({
+                    url: '/like_comment',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({ comment_id: comment_id }),
+                    success: function(response) {
+                        fetchComments();
+                    },
+                    error: function(error) {
+                        console.error('Error liking comment:', error);
+                    }
+                });
+            });
+
+            $(document).on('click', '.reply-comment', function() {
+                var comment_id = $(this).data('id');
+                $(`.reply-form[data-id=${comment_id}]`).toggle();
+            });
+
+            $(document).on('click', '.post-reply', function() {
+                var comment_id = $(this).data('id');
+                var text = $(`.reply-text[data-id=${comment_id}]`).val();
+                if (!text.trim()) return;
+
+                $.ajax({
+                    url: '/reply_comment',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({
+                        comment_id: comment_id,
+                        text: text
+                    }),
+                    success: function(response) {
+                        fetchComments();
+                    },
+                    error: function(error) {
+                        console.error('Error posting reply:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
