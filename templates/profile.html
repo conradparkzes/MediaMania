@@ -12,6 +12,18 @@
         <div class="container">
             <h1>Profile</h1>
             <h2>Hello, {{ name }}</h2>
+
+            <!--sort feature!-->
+            <div class="sort-options">
+                <label for="sort">Sort by:</label>
+                <select id="sort" onchange="sortFavorites(this.value)">
+                    <option value="default">Relevance</option>
+                    <option value="alpha">Alphabetical</option>
+                    <option value="release">Release Date</option>
+                    <option value="rating">Rating</option>
+                </select>
+            </div>
+
             <div id="liked-media">
                 {% if liked_movies %}
                     <div class="trending-section" id="liked-movies-section">
@@ -25,6 +37,7 @@
                                     </a>
                                     <p class="title">{{ movie.title | truncate(20) }}</p>
                                     <p class="rating">Rating: {{ "%.1f"|format(movie.vote_average) if movie.vote_average else "No Rating" }}/10</p>
+                                    <!-- to be fixed <p class="user-rating">Your Rating: {{ movie.rating }}</p> -->
                                     <button class="favorite-btn"
                                             data-id="{{ movie.media_id }}"
                                             data-type="movie"
@@ -51,6 +64,7 @@
                                     </a>
                                     <p class="title">{{ tv_show.title | truncate(20) }}</p>
                                     <p class="rating">Rating: {{ "%.1f"|format(tv_show.vote_average) if tv_show.vote_average else "No Rating" }}/10</p>
+                                    <!-- to be fixed <p class="user-rating">Your Rating: {{ tv_show.rating }}</p> -->
                                     <button class="favorite-btn"
                                             data-id="{{ tv_show.media_id }}"
                                             data-type="tv"
@@ -65,6 +79,54 @@
                 {% endif %}
             </div>
         </div>
+
+        <div id="recommended-media">
+            {% if recommended_movies %}
+                <div class="trending-section" id="recommended-movies-section">
+                    <h2>Recommended Movies</h2>
+                    <div class="card-content">
+                        {% for movie in recommended_movies %}
+                            <div class="card-item" data-id="{{ movie.id }}">
+                                <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                                     alt="{{ movie.title }}">
+                                <p class="title">{{ movie.title | truncate(20) }}</p>
+                                <p class="rating">Rating: {{ "%.1f"|format(movie.vote_average) if movie.vote_average else "No Rating" }}/10</p>
+                                <button class="favorite-btn"
+                                        data-id="{{ movie.id }}"
+                                        data-type="movie"
+                                        data-title="{{ movie.title }}"
+                                        data-poster="{{ movie.poster_path }}"
+                                        data-vote-average="{{ movie.vote_average }}">Favorite</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            {% if recommended_shows %}
+                <div class="trending-section" id="recommended-shows-section">
+                    <h2>Recommended TV Shows</h2>
+                    <div class="card-content">
+                        {% for show in recommended_shows %}
+                            <div class="card-item" data-id="{{ show.id }}">
+                                <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}"
+                                     alt="{{ show.name }}">
+                                <p class="title">{{ show.name | truncate(20) }}</p>
+                                <p class="rating">Rating: {{ "%.1f"|format(show.vote_average) if show.vote_average else "No Rating" }}/10</p>
+                                <button class="favorite-btn"
+                                        data-id="{{ show.id }}"
+                                        data-type="tv"
+                                        data-title="{{ show.name }}"
+                                        data-poster="{{ show.poster_path }}"
+                                        data-vote-average="{{ show.vote_average }}">Favorite</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
         <script>
             $(document).ready(function() {
                 function checkIfNoLikedMedia() {
@@ -80,8 +142,68 @@
                     }
                 }
 
+                // SORT FEATURE
+                function sortFavorites(sortBy) {
+                    var cardItemsMovies = $('#liked-movies .card-item').get();
+                    var cardItemsTvShows = $('#liked-tv-shows .card-item').get();
+
+                    if (sortBy === 'alpha') {
+                        cardItemsMovies.sort(function(a, b) {
+                            var titleA = $(a).data('title').toLowerCase();
+                            var titleB = $(b).data('title').toLowerCase();
+                            return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0;
+                        });
+                        cardItemsTvShows.sort(function(a, b) {
+                            var titleA = $(a).data('title').toLowerCase();
+                            var titleB = $(b).data('title').toLowerCase();
+                            return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0;
+                        });
+                    } else if (sortBy === 'release') {
+                        cardItemsMovies.sort(function(a, b) {
+                            var dateA = new Date($(a).data('release-date'));
+                            var dateB = new Date($(b).data('release-date'));
+                            return dateA - dateB;
+                        });
+                        cardItemsTvShows.sort(function(a, b) {
+                            var dateA = new Date($(a).data('release-date'));
+                            var dateB = new Date($(b).data('release-date'));
+                            return dateA - dateB;
+                        });
+                    } else if (sortBy === 'rating') {
+                        cardItemsMovies.sort(function(a, b) {
+                            var ratingA = parseFloat($(a).data('rating'));
+                            var ratingB = parseFloat($(b).data('rating'));
+                            return ratingB - ratingA;
+                        });
+                        cardItemsTvShows.sort(function(a, b) {
+                            var ratingA = parseFloat($(a).data('rating'));
+                            var ratingB = parseFloat($(b).data('rating'));
+                            return ratingB - ratingA;
+                        });
+                    }
+
+                    $.each(cardItemsMovies, function(index, item) {
+                        $('#liked-movies').append(item);
+                    });
+                    $.each(cardItemsTvShows, function(index, item) {
+                        $('#liked-tv-shows').append(item);
+                    });
+                }
+
+                $('#sort').change(function() {
+                    sortFavorites(this.value);
+                });
+
                 // unfavorite button initially red
-                $('.favorite-btn').css('background-color', '#ff0000');
+                $('.favorite-btn').each(function() {
+                    var button = $(this);
+                    var media_id = button.data('id');
+                    if (liked_media_ids.includes(media_id)) {
+                        button.text('Unfavorite').css('background-color', '#ff0000');
+                    } else {
+                        button.text('Favorite').css('background-color', '#28a745');
+                    }
+                });
         
                 $('.favorite-btn').click(function() {
                     var button = $(this);
