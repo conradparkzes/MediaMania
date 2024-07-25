@@ -420,6 +420,10 @@ body {
   margin-bottom: 40px;
 }
 
+#recommended-media {
+  margin-left: 60px;
+}
+
 /* Trending Section (*/
 .trending-section {
   margin-bottom: 30px;
