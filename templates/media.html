@@ -112,7 +112,7 @@
                 var media_id = $(this).parent().data('id');
                 var media_type = $(this).parent().data('type');
 
-                if ($(this).hasClass('gold')) {
+                if ($(this).hasClass('gold') && rating === user_rating) {
                     rating = 0; // reset rating to 0 if current star is clicked again
                 }
 
@@ -129,6 +129,7 @@
                         rating: rating
                     }),
                     success: function(response) {
+                        user_rating = rating;
                         $('.star').removeClass('gold');
                         if (rating > 0) {
                             $('.star').each(function() {
@@ -161,6 +162,7 @@
             var csrf_token = "{{ csrf_token() }}";
             var media_id = "{{ media.id }}";
             var media_type = "{{ media_type }}";
+            var current_user_id = "{{ current_user.id }}";
 
             function fetchComments() {
                 $.ajax({
@@ -169,23 +171,36 @@
                     success: function(response) {
                         $('#comments-container').empty();
                         response.forEach(function(comment) {
+                            var deleteButton = parseInt(current_user_id) === parseInt(comment.user_id) ? `<button class="delete-comment" data-id="${comment.id}">Delete</button>` : '';
                             var commentHtml = `<div class="comment" data-id="${comment.id}">
                                 <p><strong>${comment.username}</strong> ${comment.timestamp}</p>
                                 <p>${comment.text}</p>
                                 <button class="like-comment" data-id="${comment.id}">Like (${comment.likes})</button>
+                                ${deleteButton}
                                 {% if current_user.is_authenticated %}
-                                <button class="reply-comment" data-id="${comment.id}">Reply</button>
+                                <button class="reply-comment" data-id="${comment.id}" data-username="${comment.username}">Reply</button>
                                 <div class="reply-form" data-id="${comment.id}" style="display:none;">
                                     <textarea class="reply-text" data-id="${comment.id}" placeholder="Reply..."></textarea>
                                     <button class="post-reply" data-id="${comment.id}">Post Reply</button>
                                 </div>
                                 {% endif %}
                                 <div class="replies-container" data-id="${comment.id}">
-                                    ${comment.replies.map(reply => `<div class="comment reply" data-id="${reply.id}">
-                                        <p><strong>${reply.username}</strong> ${reply.timestamp}</p>
-                                        <p>${reply.text}</p>
-                                        <button class="like-comment" data-id="${reply.id}">Like (${reply.likes})</button>
-                                    </div>`).join('')}
+                                    ${comment.replies.map(reply => {
+                                        var deleteReplyButton = parseInt(current_user_id) === parseInt(reply.user_id) ? `<button class="delete-comment" data-id="${reply.id}">Delete</button>` : '';
+                                        return `<div class="comment reply" data-id="${reply.id}">
+                                            <p><strong>${reply.username}</strong> ${reply.timestamp}</p>
+                                            <p>${reply.text}</p>
+                                            <button class="like-comment" data-id="${reply.id}">Like (${reply.likes})</button>
+                                            ${deleteReplyButton}
+                                            {% if current_user.is_authenticated %}
+                                            <button class="reply-comment" data-id="${reply.id}" data-username="${reply.username}">Reply</button>
+                                            <div class="reply-form" data-id="${reply.id}" style="display:none;">
+                                                <textarea class="reply-text" data-id="${reply.id}" placeholder="Reply..."></textarea>
+                                                <button class="post-reply" data-id="${reply.id}">Post Reply</button>
+                                            </div>
+                                            {% endif %}
+                                        </div>`;
+                                    }).join('')}
                                 </div>
                             </div>`;
                             $('#comments-container').append(commentHtml);
@@ -225,9 +240,27 @@
                 });
             });
 
-            $(document).on('click', '.like-comment', function() {
-                var comment_id = $(this).data('id');
+            $(document).on('click', '.delete-comment', function() {
+                var commentId = $(this).data('id');
+                $.ajax({
+                    url: '/delete_comment',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({ comment_id: commentId }),
+                    success: function(response) {
+                        fetchComments();
+                    },
+                    error: function(error) {
+                        console.error('Error deleting comment:', error);
+                    }
+                });
+            });
 
+            $(document).on('click', '.like-comment', function() {
+                var commentId = $(this).data('id');
                 $.ajax({
                     url: '/like_comment',
                     method: 'POST',
@@ -235,7 +268,7 @@
                     headers: {
                         'X-CSRFToken': csrf_token
                     },
-                    data: JSON.stringify({ comment_id: comment_id }),
+                    data: JSON.stringify({ comment_id: commentId }),
                     success: function(response) {
                         fetchComments();
                     },
@@ -246,28 +279,34 @@
             });
 
             $(document).on('click', '.reply-comment', function() {
-                var comment_id = $(this).data('id');
-                $(`.reply-form[data-id=${comment_id}]`).toggle();
+                var commentId = $(this).data('id');
+                var username = $(this).data('username');
+                var replyForm = $(`.reply-form[data-id="${commentId}"]`);
+                var replyText = $(`.reply-text[data-id="${commentId}"]`);
+                replyForm.toggle();
+                replyText.val(`@${username} `).focus();
             });
 
             $(document).on('click', '.post-reply', function() {
-                var comment_id = $(this).data('id');
-                var text = $(`.reply-text[data-id=${comment_id}]`).val();
+                var commentId = $(this).data('id');
+                var text = $(`.reply-text[data-id=${commentId}]`).val();
                 if (!text.trim()) return;
 
                 $.ajax({
-                    url: '/reply_comment',
+                    url: '/reply',
                     method: 'POST',
                     contentType: 'application/json',
                     headers: {
                         'X-CSRFToken': csrf_token
                     },
                     data: JSON.stringify({
-                        comment_id: comment_id,
+                        parent_id: commentId,
                         text: text
                     }),
                     success: function(response) {
                         fetchComments();
+                        $(`.reply-text[data-id="${commentId}"]`).val('');
+                        $(`.reply-form[data-id="${commentId}"]`).hide();
                     },
                     error: function(error) {
                         console.error('Error posting reply:', error);

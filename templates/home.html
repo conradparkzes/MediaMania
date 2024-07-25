@@ -48,7 +48,8 @@
                     {% for show in trending_shows %}
                         <div class="card-item">
                             <a href="{{ url_for('media_detail', media_type='tv', media_id=show.id) }}">
-                                <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}" alt="{{ show.name }}">
+                                <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}"
+                                     alt="{{ show.name }}">
                             </a>
                             <p class="title">{{ show.name | truncate(20) }}</p>
                             <p class="rating">Rating: {{ "%.1f"|format(show.vote_average) if show.vote_average else "No Rating" }}/10</p>

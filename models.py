@@ -11,6 +11,9 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
     favorites = db.relationship('Favorite', backref='user', lazy=True)
+    ratings = db.relationship('MediaRating', backref='user', lazy=True)
+    comments = db.relationship('Comment', backref='user', lazy=True)
+    comment_likes = db.relationship('CommentLike', backref='user', lazy=True)
 
     def set_password(self, password):
         self.password = generate_password_hash(password, method='pbkdf2:sha256')
@@ -26,8 +29,6 @@ class Favorite(db.Model):
     title = db.Column(db.String(100), nullable=False)
     poster_path = db.Column(db.String(200), nullable=True)
     vote_average = db.Column(db.Float, nullable=True)
-    rating = db.Column(db.Integer, nullable=True)
-    # timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
         return f'<Favorite {self.title}>'
@@ -39,8 +40,6 @@ class MediaRating(db.Model):
     media_type = db.Column(db.String(10), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
 
-    user = db.relationship('User', backref=db.backref('ratings', lazy=True))
-
     def __repr__(self):
         return f'<MediaRating {self.user_id} {self.media_id} {self.media_type} {self.rating}>'
 
@@ -51,10 +50,9 @@ class Comment(db.Model):
     media_type = db.Column(db.String(10), nullable=False)
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
-    likes = db.relationship('CommentLike', backref='comment', lazy=True)
-    replies = db.relationship('Comment', backref=db.backref('parent', remote_side=[id]), lazy=True)
-    user = db.relationship('User', backref=db.backref('comments', lazy=True))
+    parent_id = db.Column(db.Integer, db.ForeignKey('comment.id'))
+    likes = db.relationship('CommentLike', backref='comment', lazy=True, cascade='all, delete-orphan')
+    replies = db.relationship('Comment', backref=db.backref('parent', remote_side=[id]), lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Comment {self.text[:20]}...>'
@@ -62,7 +60,7 @@ class Comment(db.Model):
 class CommentLike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id', ondelete='CASCADE'), nullable=False)
 
     def __repr__(self):
         return f'<CommentLike {self.user_id} likes {self.comment_id}>'
