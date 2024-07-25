@@ -203,6 +203,62 @@ def like_comment():
         db.session.commit()
         return jsonify({'result': 'liked'})
 
+@app.route('/delete_comment', methods=['POST'])
+@login_required
+def delete_comment():
+    data = request.get_json()
+    comment_id = data.get('comment_id')
+    if not comment_id:
+        return jsonify({'result': 'error', 'message': 'No comment ID provided'})
+
+    comment = Comment.query.get(comment_id)
+    if not comment:
+        return jsonify({'result': 'error', 'message': 'Comment not found'})
+
+    if comment.user_id != current_user.id:
+        return jsonify({'result': 'error', 'message': 'You are not authorized to delete this comment'})
+
+    def delete_replies(comment):
+        replies = Comment.query.filter_by(parent_id=comment.id).all()
+        for reply in replies:
+            delete_replies(reply)
+            db.session.delete(reply)
+    
+    # Delete replies recursively
+    delete_replies(comment)
+    
+    db.session.delete(comment)
+    db.session.commit()
+    return jsonify({'result': 'success'})
+
+@app.route('/reply', methods=['POST'])
+@login_required
+def reply():
+    data = request.get_json()
+    parent_id = data.get('parent_id')
+    text = data.get('text')
+
+    if not parent_id or not text:
+        return jsonify({'result': 'error', 'message': 'Missing data'}), 400
+
+    parent_comment = Comment.query.get(parent_id)
+    if not parent_comment:
+        return jsonify({'result': 'error', 'message': 'Parent comment not found'}), 404
+
+    # ensure replies to replies are not nested further
+    top_level_parent_id = parent_comment.parent_id if parent_comment.parent_id else parent_comment.id
+
+    reply_comment = Comment(
+        user_id=current_user.id,
+        media_id=parent_comment.media_id,
+        media_type=parent_comment.media_type,
+        text=text,
+        parent_id=top_level_parent_id
+    )
+    db.session.add(reply_comment)
+    db.session.commit()
+    
+    return jsonify({'result': 'success'})
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
