@@ -112,7 +112,7 @@
                 var media_id = $(this).parent().data('id');
                 var media_type = $(this).parent().data('type');
 
-                if ($(this).hasClass('gold')) {
+                if ($(this).hasClass('gold') && rating === user_rating) {
                     rating = 0; // reset rating to 0 if current star is clicked again
                 }
 
@@ -129,6 +129,7 @@
                         rating: rating
                     }),
                     success: function(response) {
+                        user_rating = rating;
                         $('.star').removeClass('gold');
                         if (rating > 0) {
                             $('.star').each(function() {
