@@ -25,13 +25,11 @@
                     {{ form.password(size=32) }}
                     <br>
                     {% for error in form.password.errors %}<span class="error">[{{ error }}]</span>{% endfor %}
-                </p>
-                <p>{{ form.remember() }} {{ form.remember.label }}</p>
-                <div class="submit-btn-container">
-                    <button type="submit">Login</button>
-                </div>
-            </form>
-        </div>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    </body>
-</html>
+                    <div class="submit-btn-container">
+                        <button type="submit">Login</button>
+                    </div>
+                </form>
+            </div>
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        </body>
+    </html>
